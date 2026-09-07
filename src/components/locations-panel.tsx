@@ -14,10 +14,19 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import type { Location, Project } from "@/lib/types";
+import { emptyFieldsFor } from "@/lib/relations-analysis";
+import { getSchema } from "@/lib/schemas";
+import type { Location, Project, SchemaField } from "@/lib/types";
 
-function blankLocation(id: string): Location {
+function blankLocation(id: string, fieldKeys: string[]): Location {
   return {
     id,
     name: "",
@@ -25,11 +34,14 @@ function blankLocation(id: string): Location {
     mood: "",
     description: "",
     exposition: "",
+    fields: emptyFieldsFor(fieldKeys),
   };
 }
 
 export function LocationsPanel({ project }: { project: Project }) {
   const { upsertLocation, removeLocation, newId } = useStore();
+  const schema = getSchema(project.schemaId);
+  const fieldKeys = schema.locationFields.map((field) => field.key);
   const [draft, setDraft] = useState<Location | null>(null);
 
   return (
@@ -40,12 +52,12 @@ export function LocationsPanel({ project }: { project: Project }) {
             Локации
           </h2>
           <p className="text-sm text-[var(--ink-muted)]">
-            Места как персонажи: настроение, функция, что они объясняют зрителю.
+            Шаблон «{schema.name}»: настроение, доступ и поля мира.
           </p>
         </div>
         <Button
           className="bg-[var(--ink)] text-white hover:bg-[var(--ink)]/90"
-          onClick={() => setDraft(blankLocation(newId("loc")))}
+          onClick={() => setDraft(blankLocation(newId("loc"), fieldKeys))}
         >
           <Plus className="size-4" />
           Добавить
@@ -71,6 +83,13 @@ export function LocationsPanel({ project }: { project: Project }) {
                   <div className="flex flex-wrap items-center gap-2">
                     <h3 className="text-base font-semibold text-[var(--ink)]">{location.name}</h3>
                     {location.type ? <Badge variant="secondary">{location.type}</Badge> : null}
+                    {schema.locationFields
+                      .filter((field) => field.highlight && location.fields?.[field.key])
+                      .map((field) => (
+                        <Badge key={field.key} variant="outline">
+                          {location.fields[field.key]}
+                        </Badge>
+                      ))}
                   </div>
                   {location.mood ? (
                     <p className="text-sm text-[var(--ink-muted)]">{location.mood}</p>
@@ -91,7 +110,12 @@ export function LocationsPanel({ project }: { project: Project }) {
                   <Button
                     size="icon-sm"
                     variant="ghost"
-                    onClick={() => setDraft(location)}
+                    onClick={() =>
+                      setDraft({
+                        ...location,
+                        fields: { ...emptyFieldsFor(fieldKeys), ...location.fields },
+                      })
+                    }
                     aria-label="Редактировать"
                   >
                     <Pencil className="size-4" />
@@ -134,9 +158,21 @@ export function LocationsPanel({ project }: { project: Project }) {
                 <Input
                   value={draft.type}
                   onChange={(event) => setDraft({ ...draft, type: event.target.value })}
-                  placeholder="Интерьер / Экстерьер / Переход"
                 />
               </div>
+              {schema.locationFields.map((field) => (
+                <SchemaFieldInput
+                  key={field.key}
+                  field={field}
+                  value={draft.fields?.[field.key] || ""}
+                  onChange={(value) =>
+                    setDraft({
+                      ...draft,
+                      fields: { ...draft.fields, [field.key]: value },
+                    })
+                  }
+                />
+              ))}
               <div className="space-y-1.5">
                 <Label>Настроение</Label>
                 <Input
@@ -175,7 +211,11 @@ export function LocationsPanel({ project }: { project: Project }) {
               disabled={!draft?.name.trim()}
               onClick={() => {
                 if (!draft?.name.trim()) return;
-                upsertLocation(project.id, { ...draft, name: draft.name.trim() });
+                upsertLocation(project.id, {
+                  ...draft,
+                  name: draft.name.trim(),
+                  fields: { ...emptyFieldsFor(fieldKeys), ...draft.fields },
+                });
                 setDraft(null);
               }}
             >
@@ -184,6 +224,49 @@ export function LocationsPanel({ project }: { project: Project }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+function SchemaFieldInput({
+  field,
+  value,
+  onChange,
+}: {
+  field: SchemaField;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  if (field.type === "select" && field.options?.length) {
+    return (
+      <div className="space-y-1.5">
+        <Label>{field.label}</Label>
+        <Select
+          value={value || undefined}
+          onValueChange={(next) => {
+            if (!next) return;
+            onChange(next);
+          }}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Выберите" />
+          </SelectTrigger>
+          <SelectContent>
+            {field.options.map((option) => (
+              <SelectItem key={option} value={option}>
+                {option}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-1.5">
+      <Label>{field.label}</Label>
+      <Input value={value} onChange={(event) => onChange(event.target.value)} />
     </div>
   );
 }

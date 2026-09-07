@@ -15,7 +15,15 @@ import { LocationsPanel } from "@/components/locations-panel";
 import { RelationshipMap } from "@/components/relationship-map";
 import { useStore } from "@/components/store-provider";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { PROJECT_SCHEMAS, getSchema } from "@/lib/schemas";
 import type { Project } from "@/lib/types";
 
 type Tab = "characters" | "locations" | "map" | "exposition";
@@ -114,6 +122,32 @@ function Workspace({
           placeholder="Формат: полный метр, сериал, пилот…"
           className="h-8 max-w-sm border-0 bg-transparent px-0 text-xs uppercase tracking-[0.14em] text-[var(--ink-muted)] shadow-none focus-visible:ring-0"
         />
+        <div className="max-w-sm space-y-1">
+          <p className="text-[11px] uppercase tracking-[0.14em] text-[var(--ink-muted)]">
+            Шаблон мира
+          </p>
+          <Select
+            value={project.schemaId}
+            onValueChange={(value) => {
+              if (!value) return;
+              updateProject({ ...project, schemaId: value });
+            }}
+          >
+            <SelectTrigger className="h-8 w-full bg-white/70">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {PROJECT_SCHEMAS.map((schema) => (
+                <SelectItem key={schema.id} value={schema.id}>
+                  {schema.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-[var(--ink-muted)]">
+            {getSchema(project.schemaId).description}
+          </p>
+        </div>
       </header>
 
       <nav className="sticky top-0 z-20 -mx-4 border-b border-[var(--line)] bg-[color-mix(in_oklab,var(--paper)_88%,white)]/90 px-2 backdrop-blur sm:-mx-0 sm:rounded-2xl sm:border sm:px-2">

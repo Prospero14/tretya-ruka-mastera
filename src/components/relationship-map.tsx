@@ -14,7 +14,7 @@ import {
   type Node,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { Link2, Pencil, Plus, Trash2 } from "lucide-react";
+import { Grid3X3, Link2, Pencil, Plus, Share2, Trash2 } from "lucide-react";
 import { useStore } from "@/components/store-provider";
 import { Button } from "@/components/ui/button";
 import {
@@ -34,6 +34,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { pairInsight, relationPressure } from "@/lib/relations-analysis";
+import { getSchema } from "@/lib/schemas";
 import type { Project, Relation, RelationKind } from "@/lib/types";
 import { RELATION_COLORS, RELATION_LABELS, ROLE_LABELS } from "@/lib/types";
 
@@ -50,55 +52,83 @@ function blankRelation(
     label: "",
     fromPerspective: "",
     toPerspective: "",
+    tension: 3,
+    trust: 3,
   };
 }
 
+type ViewMode = "map" | "matrix";
+
 export function RelationshipMap({ project }: { project: Project }) {
   const { upsertCharacter, upsertRelation, removeRelation, newId } = useStore();
+  const schema = getSchema(project.schemaId);
+  const highlightKeys = schema.characterFields
+    .filter((field) => field.highlight)
+    .map((field) => field.key);
+
+  const [view, setView] = useState<ViewMode>("map");
   const [draft, setDraft] = useState<Relation | null>(null);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
+  const [matrixPair, setMatrixPair] = useState<{ a: string; b: string } | null>(null);
 
   const initialNodes = useMemo<Node[]>(
     () =>
-      project.characters.map((character) => ({
-        id: character.id,
-        position: { x: character.mapX, y: character.mapY },
-        data: {
-          label: (
-            <div className="min-w-[110px] px-1 py-0.5 text-center">
-              <div className="text-[11px] font-semibold leading-tight">{character.name}</div>
-              <div className="text-[10px] opacity-70">{ROLE_LABELS[character.role]}</div>
-            </div>
-          ),
-        },
-        style: {
-          borderRadius: 14,
-          border: `2px solid ${character.color}`,
-          background: "#fffdf8",
-          color: "#13294b",
-          fontSize: 12,
-          padding: 4,
-          boxShadow: "0 8px 20px rgba(19,41,75,0.08)",
-        },
-      })),
-    [project.characters],
+      project.characters.map((character) => {
+        const badges = highlightKeys
+          .map((key) => character.fields?.[key])
+          .filter(Boolean)
+          .slice(0, 2);
+        return {
+          id: character.id,
+          position: { x: character.mapX, y: character.mapY },
+          data: {
+            label: (
+              <div className="min-w-[120px] px-1 py-0.5 text-center">
+                <div className="text-[11px] font-semibold leading-tight">{character.name}</div>
+                <div className="text-[10px] opacity-70">{ROLE_LABELS[character.role]}</div>
+                {badges.length ? (
+                  <div className="mt-0.5 text-[9px] leading-tight opacity-80">
+                    {badges.join(" · ")}
+                  </div>
+                ) : null}
+              </div>
+            ),
+          },
+          style: {
+            borderRadius: 14,
+            border: `2px solid ${character.color}`,
+            background: "#fffdf8",
+            color: "#13294b",
+            fontSize: 12,
+            padding: 4,
+            boxShadow: "0 8px 20px rgba(19,41,75,0.08)",
+          },
+        };
+      }),
+    [highlightKeys, project.characters],
   );
 
   const initialEdges = useMemo<Edge[]>(
     () =>
-      project.relations.map((relation) => ({
-        id: relation.id,
-        source: relation.sourceId,
-        target: relation.targetId,
-        label: relation.label || RELATION_LABELS[relation.kind],
-        animated: relation.kind === "secret",
-        style: { stroke: RELATION_COLORS[relation.kind], strokeWidth: 2 },
-        labelStyle: { fill: "#13294b", fontSize: 10, fontWeight: 600 },
-        markerEnd: {
-          type: MarkerType.ArrowClosed,
-          color: RELATION_COLORS[relation.kind],
-        },
-      })),
+      project.relations.map((relation) => {
+        const pressure = relationPressure(relation);
+        return {
+          id: relation.id,
+          source: relation.sourceId,
+          target: relation.targetId,
+          label: `${relation.label || RELATION_LABELS[relation.kind]} · ${pressure}/10`,
+          animated: relation.kind === "secret" || pressure >= 8,
+          style: {
+            stroke: RELATION_COLORS[relation.kind],
+            strokeWidth: 1.5 + pressure / 4,
+          },
+          labelStyle: { fill: "#13294b", fontSize: 10, fontWeight: 600 },
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            color: RELATION_COLORS[relation.kind],
+          },
+        };
+      }),
     [project.relations],
   );
 
@@ -137,6 +167,22 @@ export function RelationshipMap({ project }: { project: Project }) {
 
   const selectedRelation = project.relations.find((item) => item.id === selectedEdgeId);
 
+  const matrixInsight = useMemo(() => {
+    if (!matrixPair) return null;
+    const a = project.characters.find((item) => item.id === matrixPair.a);
+    const b = project.characters.find((item) => item.id === matrixPair.b);
+    if (!a || !b) return null;
+    return { a, b, ...pairInsight(project, a, b, highlightKeys) };
+  }, [highlightKeys, matrixPair, project]);
+
+  const selectedInsight = useMemo(() => {
+    if (!selectedRelation) return null;
+    const a = project.characters.find((item) => item.id === selectedRelation.sourceId);
+    const b = project.characters.find((item) => item.id === selectedRelation.targetId);
+    if (!a || !b) return null;
+    return pairInsight(project, a, b, highlightKeys);
+  }, [highlightKeys, project, selectedRelation]);
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -145,21 +191,45 @@ export function RelationshipMap({ project }: { project: Project }) {
             Карта связей
           </h2>
           <p className="text-sm text-[var(--ink-muted)]">
-            Тяните узлы. Соединяйте персонажей линией — откроется карточка отношения.
+            Граф + матрица давления: тип связи, доверие, напряжение и совпадения полей шаблона.
           </p>
         </div>
-        <Button
-          variant="outline"
-          disabled={project.characters.length < 2}
-          onClick={() => {
-            const [a, b] = project.characters;
-            if (!a || !b) return;
-            setDraft(blankRelation(newId("rel"), a.id, b.id));
-          }}
-        >
-          <Plus className="size-4" />
-          Связь
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <div className="inline-flex rounded-xl border border-[var(--line)] bg-white/70 p-1">
+            <button
+              type="button"
+              className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs ${
+                view === "map" ? "bg-[var(--ink)] text-white" : "text-[var(--ink-muted)]"
+              }`}
+              onClick={() => setView("map")}
+            >
+              <Share2 className="size-3.5" />
+              Граф
+            </button>
+            <button
+              type="button"
+              className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs ${
+                view === "matrix" ? "bg-[var(--ink)] text-white" : "text-[var(--ink-muted)]"
+              }`}
+              onClick={() => setView("matrix")}
+            >
+              <Grid3X3 className="size-3.5" />
+              Матрица
+            </button>
+          </div>
+          <Button
+            variant="outline"
+            disabled={project.characters.length < 2}
+            onClick={() => {
+              const [a, b] = project.characters;
+              if (!a || !b) return;
+              setDraft(blankRelation(newId("rel"), a.id, b.id));
+            }}
+          >
+            <Plus className="size-4" />
+            Связь
+          </Button>
+        </div>
       </div>
 
       {project.characters.length === 0 ? (
@@ -169,7 +239,7 @@ export function RelationshipMap({ project }: { project: Project }) {
             Сначала добавьте хотя бы двух персонажей.
           </p>
         </div>
-      ) : (
+      ) : view === "map" ? (
         <div className="overflow-hidden rounded-2xl border border-[var(--line)] bg-[#f4f7fb]">
           <div className="h-[420px] w-full sm:h-[520px]">
             <ReactFlow
@@ -189,7 +259,36 @@ export function RelationshipMap({ project }: { project: Project }) {
             </ReactFlow>
           </div>
         </div>
+      ) : (
+        <RelationMatrix
+          project={project}
+          highlightKeys={highlightKeys}
+          onSelectPair={(a, b) => setMatrixPair({ a, b })}
+        />
       )}
+
+      {selectedInsight && selectedRelation ? (
+        <InsightCard
+          title="Выбрана связь на графе"
+          body={selectedInsight.summary}
+          onEdit={() => setDraft(selectedRelation)}
+        />
+      ) : null}
+
+      {matrixInsight ? (
+        <InsightCard
+          title={`${matrixInsight.a.name} ↔ ${matrixInsight.b.name}`}
+          body={matrixInsight.summary}
+          onEdit={
+            matrixInsight.relation
+              ? () => setDraft(matrixInsight.relation!)
+              : () =>
+                  setDraft(
+                    blankRelation(newId("rel"), matrixInsight.a.id, matrixInsight.b.id),
+                  )
+          }
+        />
+      ) : null}
 
       <div className="space-y-2">
         <h3 className="text-sm font-semibold uppercase tracking-[0.16em] text-[var(--ink-muted)]">
@@ -202,6 +301,7 @@ export function RelationshipMap({ project }: { project: Project }) {
             {project.relations.map((relation) => {
               const source = project.characters.find((item) => item.id === relation.sourceId);
               const target = project.characters.find((item) => item.id === relation.targetId);
+              const pressure = relationPressure(relation);
               return (
                 <li
                   key={relation.id}
@@ -218,6 +318,7 @@ export function RelationshipMap({ project }: { project: Project }) {
                     <p className="text-xs text-[var(--ink-muted)]">
                       {RELATION_LABELS[relation.kind]}
                       {relation.label ? ` · ${relation.label}` : ""}
+                      {` · давление ${pressure}/10`}
                     </p>
                   </div>
                   <Button
@@ -242,23 +343,6 @@ export function RelationshipMap({ project }: { project: Project }) {
           </ul>
         )}
       </div>
-
-      {selectedRelation ? (
-        <div className="rounded-xl border border-[var(--line)] bg-white/80 px-4 py-3 text-sm">
-          <p className="font-medium text-[var(--ink)]">Выбрана связь на карте</p>
-          <p className="mt-1 text-[var(--ink-muted)]">
-            {selectedRelation.label || RELATION_LABELS[selectedRelation.kind]}
-          </p>
-          <Button
-            className="mt-2"
-            size="sm"
-            variant="outline"
-            onClick={() => setDraft(selectedRelation)}
-          >
-            Открыть
-          </Button>
-        </div>
-      ) : null}
 
       <Dialog open={Boolean(draft)} onOpenChange={(open) => !open && setDraft(null)}>
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
@@ -341,8 +425,39 @@ export function RelationshipMap({ project }: { project: Project }) {
                 <Input
                   value={draft.label}
                   onChange={(event) => setDraft({ ...draft, label: event.target.value })}
-                  placeholder="Например: ложное доверие"
                 />
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label>Напряжение (1–5)</Label>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={5}
+                    value={draft.tension}
+                    onChange={(event) =>
+                      setDraft({
+                        ...draft,
+                        tension: clampScore(Number(event.target.value)),
+                      })
+                    }
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Доверие (1–5)</Label>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={5}
+                    value={draft.trust}
+                    onChange={(event) =>
+                      setDraft({
+                        ...draft,
+                        trust: clampScore(Number(event.target.value)),
+                      })
+                    }
+                  />
+                </div>
               </div>
               <div className="space-y-1.5">
                 <Label>С точки зрения первого</Label>
@@ -385,6 +500,110 @@ export function RelationshipMap({ project }: { project: Project }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+function clampScore(value: number) {
+  if (Number.isNaN(value)) return 3;
+  return Math.min(5, Math.max(1, Math.round(value)));
+}
+
+function InsightCard({
+  title,
+  body,
+  onEdit,
+}: {
+  title: string;
+  body: string;
+  onEdit: () => void;
+}) {
+  return (
+    <div className="rounded-xl border border-[var(--line)] bg-white/80 px-4 py-3 text-sm">
+      <p className="font-medium text-[var(--ink)]">{title}</p>
+      <p className="mt-1 leading-relaxed text-[var(--ink-muted)]">{body}</p>
+      <Button className="mt-2" size="sm" variant="outline" onClick={onEdit}>
+        Открыть связь
+      </Button>
+    </div>
+  );
+}
+
+function RelationMatrix({
+  project,
+  highlightKeys,
+  onSelectPair,
+}: {
+  project: Project;
+  highlightKeys: string[];
+  onSelectPair: (a: string, b: string) => void;
+}) {
+  const chars = project.characters;
+
+  return (
+    <div className="overflow-x-auto rounded-2xl border border-[var(--line)] bg-white/80">
+      <table className="min-w-full border-collapse text-left text-xs">
+        <thead>
+          <tr>
+            <th className="sticky left-0 bg-[#f7fafc] p-2 font-semibold text-[var(--ink)]">
+              Кто → кого
+            </th>
+            {chars.map((character) => (
+              <th key={character.id} className="max-w-[88px] p-2 font-medium text-[var(--ink)]">
+                <span className="line-clamp-2">{character.name}</span>
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {chars.map((row) => (
+            <tr key={row.id} className="border-t border-[var(--line)]">
+              <th className="sticky left-0 bg-[#f7fafc] p-2 font-medium text-[var(--ink)]">
+                {row.name}
+              </th>
+              {chars.map((col) => {
+                if (row.id === col.id) {
+                  return (
+                    <td key={col.id} className="bg-[var(--paper)]/60 p-2 text-center text-[var(--ink-muted)]">
+                      —
+                    </td>
+                  );
+                }
+                const insight = pairInsight(project, row, col, highlightKeys);
+                const pressure = insight.pressure;
+                const tone =
+                  pressure >= 8
+                    ? "bg-[#fee2e2] text-[#991b1b]"
+                    : pressure >= 5
+                      ? "bg-[#ffedd5] text-[#9a3412]"
+                      : pressure > 0
+                        ? "bg-[#ecfdf5] text-[#065f46]"
+                        : "bg-white text-[var(--ink-muted)]";
+                return (
+                  <td key={col.id} className="p-1">
+                    <button
+                      type="button"
+                      className={`flex min-h-14 w-full flex-col items-start justify-center rounded-lg px-2 py-1 text-left ${tone}`}
+                      onClick={() => onSelectPair(row.id, col.id)}
+                    >
+                      <span className="font-semibold">{pressure}/10</span>
+                      <span className="line-clamp-2 text-[10px] leading-tight">
+                        {insight.relation
+                          ? insight.relation.label || RELATION_LABELS[insight.relation.kind]
+                          : insight.conflicting[0]
+                            ? "разлом"
+                            : insight.shared[0]
+                              ? "общее"
+                              : "нет связи"}
+                      </span>
+                    </button>
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

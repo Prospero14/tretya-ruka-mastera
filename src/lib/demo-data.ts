@@ -1,16 +1,21 @@
+import { getSchema } from "./schemas";
 import type { Project } from "./types";
 
 function id(prefix: string) {
   return `${prefix}_${Math.random().toString(36).slice(2, 9)}`;
 }
 
-export function createEmptyProject(title = "Новый проект"): Project {
+export function createEmptyProject(
+  title = "Новый проект",
+  schemaId = "blank",
+): Project {
   const now = new Date().toISOString();
   return {
     id: id("prj"),
     title,
     logline: "",
     format: "Полный метр",
+    schemaId,
     createdAt: now,
     updatedAt: now,
     characters: [],
@@ -22,6 +27,8 @@ export function createEmptyProject(title = "Новый проект"): Project {
 
 export function createDemoProject(): Project {
   const now = new Date().toISOString();
+  const schema = getSchema("noir");
+
   const mara = {
     id: "char_mara",
     name: "Мара Волкова",
@@ -33,8 +40,12 @@ export function createDemoProject(): Project {
       "Бывшая оперативница, ушла в архив после дела, которое официально закрыли. Знает город как карту шрамов.",
     notes: "Голос низкий, речь короткая. Не любит зеркала в чужих квартирах.",
     color: "#0f766e",
-    mapX: 180,
-    mapY: 160,
+    mapX: 120,
+    mapY: 140,
+    fields: {
+      affiliation: "Архив",
+      secret: "Знала жертву из закрытого дела",
+    },
   };
   const kirill = {
     id: "char_kirill",
@@ -48,7 +59,11 @@ export function createDemoProject(): Project {
     notes: "Всегда носит бежевые перчатки. Цитирует протоколы наизусть.",
     color: "#b91c1c",
     mapX: 420,
-    mapY: 140,
+    mapY: 120,
+    fields: {
+      affiliation: "Архив",
+      secret: "Правит списком изъятий",
+    },
   };
   const lea = {
     id: "char_lea",
@@ -61,8 +76,30 @@ export function createDemoProject(): Project {
       "Подросток, который видел обмен дневниками на ночной остановке. Её молчание — главный рычаг второго акта.",
     notes: "Рисует карты маршрутов трамваев на полях тетрадей.",
     color: "#1d4ed8",
-    mapX: 300,
+    mapX: 260,
     mapY: 320,
+    fields: {
+      affiliation: "Улица",
+      secret: "Видела обмен на остановке",
+    },
+  };
+  const oleg = {
+    id: "char_oleg",
+    name: "Олег Рамин",
+    role: "supporting" as const,
+    archetype: "Бывший напарник",
+    goal: "Вернуть Мару в участок",
+    flaw: "Ставит процедуру выше человека",
+    exposition:
+      "Единственный, кто помнит старое дело Мары. Тянет её обратно в официальную машину — и сам боится архива.",
+    notes: "Курит у чёрного хода. Не заходит внутрь стеллажей.",
+    color: "#a16207",
+    mapX: 40,
+    mapY: 300,
+    fields: {
+      affiliation: "Полиция",
+      secret: "Подписал ложный отчёт по старому делу",
+    },
   };
 
   return {
@@ -71,9 +108,10 @@ export function createDemoProject(): Project {
     logline:
       "Следователь архива ищет пропавшие дневники — и понимает, что город сам редактирует чужие биографии.",
     format: "Сериал · 6 серий",
+    schemaId: schema.id,
     createdAt: now,
     updatedAt: now,
-    characters: [mara, kirill, lea],
+    characters: [mara, kirill, lea, oleg],
     locations: [
       {
         id: "loc_archive",
@@ -83,6 +121,7 @@ export function createDemoProject(): Project {
         description: "Три этажа стеллажей и один закрытый зал «временных изъятий».",
         exposition:
           "Здесь начинается каждый акт. Архив — не склад, а персонаж: он прячет и подсовывает улики.",
+        fields: { access: "По пропуску" },
       },
       {
         id: "loc_stop",
@@ -92,6 +131,7 @@ export function createDemoProject(): Project {
         description: "Конечная линия трамвая №7. Здесь Леа видела обмен.",
         exposition:
           "Ключевая локация для экспозиции мира: город живёт по расписанию, которое кто-то переписывает.",
+        fields: { access: "Открыто" },
       },
       {
         id: "loc_flat",
@@ -100,6 +140,7 @@ export function createDemoProject(): Project {
         mood: "Полутьма, карта города на стене",
         description: "Комната-кабинет. На столе — копии чужих дневников.",
         exposition: "Безопасное пространство, которое постепенно перестаёт быть безопасным.",
+        fields: { access: "Тайно" },
       },
     ],
     relations: [
@@ -111,6 +152,8 @@ export function createDemoProject(): Project {
         label: "Доверие / ловушка",
         fromPerspective: "Нужен как проводник по архиву",
         toPerspective: "Удобный инструмент, пока не докопается",
+        tension: 5,
+        trust: 2,
       },
       {
         id: "rel_2",
@@ -120,6 +163,8 @@ export function createDemoProject(): Project {
         label: "Защита",
         fromPerspective: "Единственный живой след",
         toPerspective: "Взрослая, которой можно рискнуть довериться",
+        tension: 3,
+        trust: 4,
       },
       {
         id: "rel_3",
@@ -129,6 +174,30 @@ export function createDemoProject(): Project {
         label: "Угроза молчания",
         fromPerspective: "Свидетель, которого нельзя оставить",
         toPerspective: "Человек из перчаток, которого она боится",
+        tension: 5,
+        trust: 1,
+      },
+      {
+        id: "rel_4",
+        sourceId: mara.id,
+        targetId: oleg.id,
+        kind: "ally",
+        label: "Старый долг",
+        fromPerspective: "Единственный, кто помнит правду",
+        toPerspective: "Хочет вернуть её в строй",
+        tension: 2,
+        trust: 3,
+      },
+      {
+        id: "rel_5",
+        sourceId: oleg.id,
+        targetId: kirill.id,
+        kind: "debt",
+        label: "Подпись в деле",
+        fromPerspective: "Кирилл знает про ложный отчёт",
+        toPerspective: "Рычаг на полицию",
+        tension: 4,
+        trust: 1,
       },
     ],
     exposition: [
@@ -144,6 +213,172 @@ export function createDemoProject(): Project {
         title: "Тон первого акта",
         body: "Не нуар ради нуара: холодный процедурный ритм + личная паранойя Мары. Экспозицию давать через улики, не через монологи.",
         tags: ["тон", "структура"],
+        updatedAt: now,
+      },
+    ],
+  };
+}
+
+export function createCyberpunkDemo(): Project {
+  const now = new Date().toISOString();
+  return {
+    id: "prj_demo_cyber",
+    title: "Неоновый долг",
+    logline: "Нетраннер должна стереть долг банде — и случайно взламывает память корпорации.",
+    format: "Полный метр",
+    schemaId: "cyberpunk",
+    createdAt: now,
+    updatedAt: now,
+    characters: [
+      {
+        id: "char_nyx",
+        name: "Никс",
+        role: "protagonist",
+        archetype: "Нетраннер",
+        goal: "Закрыть долг без потери тела",
+        flaw: "Не умеет остановиться на полпути",
+        exposition: "Работает из подвала клиники. Должна банде «Ржавые зубы».",
+        notes: "",
+        color: "#0f766e",
+        mapX: 160,
+        mapY: 160,
+        fields: {
+          faction: "Нетраннеры",
+          corp: "Ржавые зубы (долг)",
+          augment: "Нейропорт gen-3",
+          debt: "84 000 кредитов",
+        },
+      },
+      {
+        id: "char_vox",
+        name: "Вокс",
+        role: "antagonist",
+        archetype: "Корп-фиксатор",
+        goal: "Зачистить утечку памяти",
+        flaw: "Верит в идеальную систему",
+        exposition: "Сотрудник Helix Dynamics. Чистит следы до того, как они станут уликами.",
+        notes: "",
+        color: "#b91c1c",
+        mapX: 420,
+        mapY: 140,
+        fields: {
+          faction: "Корпорация",
+          corp: "Helix Dynamics",
+          augment: "Оптика + глушилка",
+          debt: "—",
+        },
+      },
+      {
+        id: "char_juno",
+        name: "Юно",
+        role: "supporting",
+        archetype: "Уличный медик",
+        goal: "Удержать клинику живой",
+        flaw: "Слишком многим должна",
+        exposition: "Даёт Никс убежище. Связана и с бандой, и с низом города.",
+        notes: "",
+        color: "#1d4ed8",
+        mapX: 280,
+        mapY: 320,
+        fields: {
+          faction: "Улица",
+          corp: "Клиника «Седьмой шов»",
+          augment: "Биорука",
+          debt: "Поставки банде",
+        },
+      },
+      {
+        id: "char_reed",
+        name: "Рид",
+        role: "supporting",
+        archetype: "Официал под прикрытием",
+        goal: "Собрать дело на Helix",
+        flaw: "Использует союзников как приманку",
+        exposition: "Внешне — курьер. На деле — официал, которому нужна Никс как ключ.",
+        notes: "",
+        color: "#a16207",
+        mapX: 80,
+        mapY: 300,
+        fields: {
+          faction: "Официалы",
+          corp: "Горбюро безопасности",
+          augment: "Нет",
+          debt: "Карьера",
+        },
+      },
+    ],
+    locations: [
+      {
+        id: "loc_clinic",
+        name: "Клиника «Седьмой шов»",
+        type: "Интерьер",
+        mood: "Неон, антисептик, гул серверов",
+        description: "Подпольная клиника и вход в сеть.",
+        exposition: "Дом Никс и точка давления банды.",
+        fields: { district: "Нижний город", security: "Уличная" },
+      },
+      {
+        id: "loc_helix",
+        name: "Башня Helix",
+        type: "Интерьер / высотка",
+        mood: "Стерильный холод",
+        description: "Корп-штаб и хранилище памяти.",
+        exposition: "Цель третьего акта.",
+        fields: { district: "Корп-тауэр", security: "Корп-охрана" },
+      },
+    ],
+    relations: [
+      {
+        id: "rel_c1",
+        sourceId: "char_nyx",
+        targetId: "char_vox",
+        kind: "rival",
+        label: "Охотник / добыча",
+        fromPerspective: "Он сотрёт меня из сети",
+        toPerspective: "Она — дыра в системе",
+        tension: 5,
+        trust: 1,
+      },
+      {
+        id: "rel_c2",
+        sourceId: "char_nyx",
+        targetId: "char_juno",
+        kind: "ally",
+        label: "Укрытие",
+        fromPerspective: "Единственный безопасный пол",
+        toPerspective: "Сестра по долгу",
+        tension: 2,
+        trust: 5,
+      },
+      {
+        id: "rel_c3",
+        sourceId: "char_nyx",
+        targetId: "char_reed",
+        kind: "secret",
+        label: "Ложный курьер",
+        fromPerspective: "Кажется своим",
+        toPerspective: "Нужен её доступ",
+        tension: 4,
+        trust: 2,
+      },
+      {
+        id: "rel_c4",
+        sourceId: "char_reed",
+        targetId: "char_vox",
+        kind: "rival",
+        label: "Дело против Helix",
+        fromPerspective: "Должен снять его тихо",
+        toPerspective: "Чужой в периметре",
+        tension: 4,
+        trust: 1,
+      },
+    ],
+    exposition: [
+      {
+        id: "exp_c1",
+        title: "Правило долга",
+        body: "Банда не прощает цифры. Корп не прощает память. Официалы не прощают свидетелей.",
+        tags: ["мир", "киберпанк"],
         updatedAt: now,
       },
     ],

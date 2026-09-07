@@ -5,11 +5,16 @@
   "scripts": {
     "dev": "next dev --port 43127 --hostname 127.0.0.1",
     "build": "next build",
-    "start": "next start --port 43127 --hostname 127.0.0.1",
-    "lint": "eslint"
+    "start": "npx serve out -l 43127",
+    "lint": "eslint",
+    "cap:sync": "npm run build && npx cap sync android",
+    "apk:debug": "npm run cap:sync && cd android && ./gradlew assembleDebug"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
+    "@capacitor/android": "^8.5.1",
+    "@capacitor/cli": "^8.5.1",
+    "@capacitor/core": "^8.5.1",
     "@xyflow/react": "^12.11.6",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

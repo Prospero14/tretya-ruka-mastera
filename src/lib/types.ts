@@ -14,6 +14,25 @@ export type RelationKind =
   | "debt"
   | "other";
 
+export type FieldType = "text" | "select";
+
+export interface SchemaField {
+  key: string;
+  label: string;
+  type: FieldType;
+  options?: string[];
+  /** Show this value on map nodes / matrix */
+  highlight?: boolean;
+}
+
+export interface ProjectSchema {
+  id: string;
+  name: string;
+  description: string;
+  characterFields: SchemaField[];
+  locationFields: SchemaField[];
+}
+
 export interface Character {
   id: string;
   name: string;
@@ -26,6 +45,8 @@ export interface Character {
   color: string;
   mapX: number;
   mapY: number;
+  /** Genre-specific values keyed by schema field key */
+  fields: Record<string, string>;
 }
 
 export interface Location {
@@ -35,6 +56,7 @@ export interface Location {
   mood: string;
   description: string;
   exposition: string;
+  fields: Record<string, string>;
 }
 
 export interface Relation {
@@ -45,6 +67,10 @@ export interface Relation {
   label: string;
   fromPerspective: string;
   toPerspective: string;
+  /** Tension 1–5: how hard this bond presses the plot */
+  tension: number;
+  /** Trust 1–5 from source toward target */
+  trust: number;
 }
 
 export interface ExpositionNote {
@@ -60,6 +86,7 @@ export interface Project {
   title: string;
   logline: string;
   format: string;
+  schemaId: string;
   createdAt: string;
   updatedAt: string;
   characters: Character[];
@@ -70,6 +97,7 @@ export interface Project {
 
 export interface AppData {
   projects: Project[];
+  version: number;
 }
 
 export const ROLE_LABELS: Record<CharacterRole, string> = {
@@ -100,3 +128,5 @@ export const RELATION_COLORS: Record<RelationKind, string> = {
   debt: "#c2410c",
   other: "#475569",
 };
+
+export const APP_DATA_VERSION = 2;

@@ -19,11 +19,12 @@ import type {
   Project,
   Relation,
 } from "@/lib/types";
+import { APP_DATA_VERSION } from "@/lib/types";
 
 interface StoreValue {
   ready: boolean;
   projects: Project[];
-  createProject: (title: string) => Project;
+  createProject: (title: string, schemaId?: string) => Project;
   updateProject: (project: Project) => void;
   deleteProject: (id: string) => void;
   getProject: (id: string) => Project | undefined;
@@ -46,6 +47,7 @@ function mutateProject(
   mutate: (project: Project) => Project,
 ): AppData {
   return {
+    ...data,
     projects: data.projects.map((project) =>
       project.id === projectId ? touchProject(mutate(project)) : project,
     ),
@@ -53,7 +55,10 @@ function mutateProject(
 }
 
 export function StoreProvider({ children }: { children: ReactNode }) {
-  const [data, setData] = useState<AppData>({ projects: [] });
+  const [data, setData] = useState<AppData>({
+    version: APP_DATA_VERSION,
+    projects: [],
+  });
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -66,14 +71,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     saveAppData(data);
   }, [data, ready]);
 
-  const createProject = useCallback((title: string) => {
-    const project = createEmptyProject(title.trim() || "Новый проект");
-    setData((prev) => ({ projects: [project, ...prev.projects] }));
+  const createProject = useCallback((title: string, schemaId = "blank") => {
+    const project = createEmptyProject(title.trim() || "Новый проект", schemaId);
+    setData((prev) => ({ ...prev, projects: [project, ...prev.projects] }));
     return project;
   }, []);
 
   const updateProject = useCallback((project: Project) => {
     setData((prev) => ({
+      ...prev,
       projects: prev.projects.map((item) =>
         item.id === project.id ? touchProject(project) : item,
       ),
@@ -82,6 +88,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const deleteProject = useCallback((id: string) => {
     setData((prev) => ({
+      ...prev,
       projects: prev.projects.filter((project) => project.id !== id),
     }));
   }, []);

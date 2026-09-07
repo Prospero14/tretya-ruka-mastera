@@ -22,12 +22,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import type { Character, CharacterRole, Project } from "@/lib/types";
+import { emptyFieldsFor } from "@/lib/relations-analysis";
+import { getSchema } from "@/lib/schemas";
+import type { Character, CharacterRole, Project, SchemaField } from "@/lib/types";
 import { ROLE_LABELS } from "@/lib/types";
 
 const COLORS = ["#0f766e", "#b91c1c", "#1d4ed8", "#a16207", "#be185d", "#475569"];
 
-function blankCharacter(id: string): Character {
+function blankCharacter(id: string, fieldKeys: string[]): Character {
   return {
     id,
     name: "",
@@ -40,11 +42,14 @@ function blankCharacter(id: string): Character {
     color: COLORS[Math.floor(Math.random() * COLORS.length)],
     mapX: 120 + Math.random() * 280,
     mapY: 100 + Math.random() * 220,
+    fields: emptyFieldsFor(fieldKeys),
   };
 }
 
 export function CharactersPanel({ project }: { project: Project }) {
   const { upsertCharacter, removeCharacter, newId } = useStore();
+  const schema = getSchema(project.schemaId);
+  const fieldKeys = schema.characterFields.map((field) => field.key);
   const [draft, setDraft] = useState<Character | null>(null);
 
   const sorted = useMemo(
@@ -69,12 +74,12 @@ export function CharactersPanel({ project }: { project: Project }) {
             Персонажи
           </h2>
           <p className="text-sm text-[var(--ink-muted)]">
-            Роль, цель, изъян и экспозиция — в одной карточке.
+            Шаблон «{schema.name}»: роль, цель и поля жанра в одной карточке.
           </p>
         </div>
         <Button
           className="bg-[var(--ink)] text-white hover:bg-[var(--ink)]/90"
-          onClick={() => setDraft(blankCharacter(newId("char")))}
+          onClick={() => setDraft(blankCharacter(newId("char"), fieldKeys))}
         >
           <Plus className="size-4" />
           Добавить
@@ -101,6 +106,13 @@ export function CharactersPanel({ project }: { project: Project }) {
                       {character.name}
                     </h3>
                     <Badge variant="secondary">{ROLE_LABELS[character.role]}</Badge>
+                    {schema.characterFields
+                      .filter((field) => field.highlight && character.fields?.[field.key])
+                      .map((field) => (
+                        <Badge key={field.key} variant="outline">
+                          {character.fields[field.key]}
+                        </Badge>
+                      ))}
                   </div>
                   {character.archetype ? (
                     <p className="text-sm text-[var(--ink-muted)]">{character.archetype}</p>
@@ -121,7 +133,12 @@ export function CharactersPanel({ project }: { project: Project }) {
                   <Button
                     size="icon-sm"
                     variant="ghost"
-                    onClick={() => setDraft(character)}
+                    onClick={() =>
+                      setDraft({
+                        ...character,
+                        fields: { ...emptyFieldsFor(fieldKeys), ...character.fields },
+                      })
+                    }
                     aria-label="Редактировать"
                   >
                     <Pencil className="size-4" />
@@ -184,6 +201,19 @@ export function CharactersPanel({ project }: { project: Project }) {
                   onChange={(event) => setDraft({ ...draft, archetype: event.target.value })}
                 />
               </Field>
+              {schema.characterFields.map((field) => (
+                <SchemaFieldInput
+                  key={field.key}
+                  field={field}
+                  value={draft.fields?.[field.key] || ""}
+                  onChange={(value) =>
+                    setDraft({
+                      ...draft,
+                      fields: { ...draft.fields, [field.key]: value },
+                    })
+                  }
+                />
+              ))}
               <Field label="Цель">
                 <Textarea
                   value={draft.goal}
@@ -205,7 +235,6 @@ export function CharactersPanel({ project }: { project: Project }) {
                     setDraft({ ...draft, exposition: event.target.value })
                   }
                   rows={3}
-                  placeholder="Что зритель должен узнать об этом герое"
                 />
               </Field>
               <Field label="Заметки">
@@ -242,7 +271,11 @@ export function CharactersPanel({ project }: { project: Project }) {
               disabled={!draft?.name.trim()}
               onClick={() => {
                 if (!draft?.name.trim()) return;
-                upsertCharacter(project.id, { ...draft, name: draft.name.trim() });
+                upsertCharacter(project.id, {
+                  ...draft,
+                  name: draft.name.trim(),
+                  fields: { ...emptyFieldsFor(fieldKeys), ...draft.fields },
+                });
                 setDraft(null);
               }}
             >
@@ -252,6 +285,47 @@ export function CharactersPanel({ project }: { project: Project }) {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+function SchemaFieldInput({
+  field,
+  value,
+  onChange,
+}: {
+  field: SchemaField;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  if (field.type === "select" && field.options?.length) {
+    return (
+      <Field label={field.label}>
+        <Select
+          value={value || undefined}
+          onValueChange={(next) => {
+            if (!next) return;
+            onChange(next);
+          }}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Выберите" />
+          </SelectTrigger>
+          <SelectContent>
+            {field.options.map((option) => (
+              <SelectItem key={option} value={option}>
+                {option}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </Field>
+    );
+  }
+
+  return (
+    <Field label={field.label}>
+      <Input value={value} onChange={(event) => onChange(event.target.value)} />
+    </Field>
   );
 }
 
