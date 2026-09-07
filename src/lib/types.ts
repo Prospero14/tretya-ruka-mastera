@@ -23,6 +23,8 @@ export interface SchemaField {
   options?: string[];
   /** Show this value on map nodes / matrix */
   highlight?: boolean;
+  /** User-created field on this project */
+  custom?: boolean;
 }
 
 export interface ProjectSchema {
@@ -45,8 +47,10 @@ export interface Character {
   color: string;
   mapX: number;
   mapY: number;
-  /** Genre-specific values keyed by schema field key */
+  /** Genre-specific / custom values keyed by field key */
   fields: Record<string, string>;
+  /** Visual / research reference links */
+  refs: string[];
 }
 
 export interface Location {
@@ -57,6 +61,7 @@ export interface Location {
   description: string;
   exposition: string;
   fields: Record<string, string>;
+  refs: string[];
 }
 
 export interface Relation {
@@ -85,8 +90,12 @@ export interface Project {
   id: string;
   title: string;
   logline: string;
+  /** Short synopsis shown first in the project */
+  synopsis: string;
   format: string;
   schemaId: string;
+  customCharacterFields: SchemaField[];
+  customLocationFields: SchemaField[];
   createdAt: string;
   updatedAt: string;
   characters: Character[];
@@ -95,9 +104,16 @@ export interface Project {
   exposition: ExpositionNote[];
 }
 
+export interface ReminderState {
+  /** ISO dates of shown reminders today */
+  shownAt: string[];
+  snoozedUntil?: string;
+}
+
 export interface AppData {
   projects: Project[];
   version: number;
+  reminders?: ReminderState;
 }
 
 export const ROLE_LABELS: Record<CharacterRole, string> = {
@@ -129,4 +145,4 @@ export const RELATION_COLORS: Record<RelationKind, string> = {
   other: "#475569",
 };
 
-export const APP_DATA_VERSION = 2;
+export const APP_DATA_VERSION = 3;

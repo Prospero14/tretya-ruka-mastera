@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { Pencil, Plus, Trash2 } from "lucide-react";
+import { CustomFieldsEditor } from "@/components/custom-fields-editor";
+import { RefSearch } from "@/components/ref-search";
 import { useStore } from "@/components/store-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,7 +25,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { emptyFieldsFor } from "@/lib/relations-analysis";
-import { getSchema } from "@/lib/schemas";
+import { getCharacterFields } from "@/lib/project-fields";
 import type { Character, CharacterRole, Project, SchemaField } from "@/lib/types";
 import { ROLE_LABELS } from "@/lib/types";
 
@@ -43,13 +45,14 @@ function blankCharacter(id: string, fieldKeys: string[]): Character {
     mapX: 120 + Math.random() * 280,
     mapY: 100 + Math.random() * 220,
     fields: emptyFieldsFor(fieldKeys),
+    refs: [],
   };
 }
 
 export function CharactersPanel({ project }: { project: Project }) {
   const { upsertCharacter, removeCharacter, newId } = useStore();
-  const schema = getSchema(project.schemaId);
-  const fieldKeys = schema.characterFields.map((field) => field.key);
+  const schemaFields = getCharacterFields(project);
+  const fieldKeys = schemaFields.map((field) => field.key);
   const [draft, setDraft] = useState<Character | null>(null);
 
   const sorted = useMemo(
@@ -74,7 +77,7 @@ export function CharactersPanel({ project }: { project: Project }) {
             Персонажи
           </h2>
           <p className="text-sm text-[var(--ink-muted)]">
-            Шаблон «{schema.name}»: роль, цель и поля жанра в одной карточке.
+            Роль, цель, поля шаблона и свои параметры — в одной карточке.
           </p>
         </div>
         <Button
@@ -85,6 +88,8 @@ export function CharactersPanel({ project }: { project: Project }) {
           Добавить
         </Button>
       </div>
+
+      <CustomFieldsEditor project={project} kind="character" />
 
       {sorted.length === 0 ? (
         <EmptyState label="Пока нет персонажей" hint="Добавьте протагониста — карта связей оживёт." />
@@ -106,7 +111,7 @@ export function CharactersPanel({ project }: { project: Project }) {
                       {character.name}
                     </h3>
                     <Badge variant="secondary">{ROLE_LABELS[character.role]}</Badge>
-                    {schema.characterFields
+                    {schemaFields
                       .filter((field) => field.highlight && character.fields?.[field.key])
                       .map((field) => (
                         <Badge key={field.key} variant="outline">
@@ -137,6 +142,7 @@ export function CharactersPanel({ project }: { project: Project }) {
                       setDraft({
                         ...character,
                         fields: { ...emptyFieldsFor(fieldKeys), ...character.fields },
+                        refs: character.refs || [],
                       })
                     }
                     aria-label="Редактировать"
@@ -201,7 +207,7 @@ export function CharactersPanel({ project }: { project: Project }) {
                   onChange={(event) => setDraft({ ...draft, archetype: event.target.value })}
                 />
               </Field>
-              {schema.characterFields.map((field) => (
+              {schemaFields.map((field) => (
                 <SchemaFieldInput
                   key={field.key}
                   field={field}
@@ -244,6 +250,11 @@ export function CharactersPanel({ project }: { project: Project }) {
                   rows={2}
                 />
               </Field>
+              <RefSearch
+                seedQuery={`${draft.name || "character"} ${draft.archetype || ""} screen character reference`.trim()}
+                refs={draft.refs || []}
+                onChange={(refs) => setDraft({ ...draft, refs })}
+              />
               <Field label="Цвет на карте">
                 <div className="flex flex-wrap gap-2">
                   {COLORS.map((color) => (
@@ -275,6 +286,7 @@ export function CharactersPanel({ project }: { project: Project }) {
                   ...draft,
                   name: draft.name.trim(),
                   fields: { ...emptyFieldsFor(fieldKeys), ...draft.fields },
+                  refs: draft.refs || [],
                 });
                 setDraft(null);
               }}

@@ -14,8 +14,11 @@ export function createEmptyProject(
     id: id("prj"),
     title,
     logline: "",
+    synopsis: "",
     format: "Полный метр",
     schemaId,
+    customCharacterFields: [],
+    customLocationFields: [],
     createdAt: now,
     updatedAt: now,
     characters: [],
@@ -46,6 +49,7 @@ export function createDemoProject(): Project {
       affiliation: "Архив",
       secret: "Знала жертву из закрытого дела",
     },
+    refs: [],
   };
   const kirill = {
     id: "char_kirill",
@@ -64,6 +68,7 @@ export function createDemoProject(): Project {
       affiliation: "Архив",
       secret: "Правит списком изъятий",
     },
+    refs: [],
   };
   const lea = {
     id: "char_lea",
@@ -82,6 +87,7 @@ export function createDemoProject(): Project {
       affiliation: "Улица",
       secret: "Видела обмен на остановке",
     },
+    refs: [],
   };
   const oleg = {
     id: "char_oleg",
@@ -100,6 +106,7 @@ export function createDemoProject(): Project {
       affiliation: "Полиция",
       secret: "Подписал ложный отчёт по старому делу",
     },
+    refs: [],
   };
 
   return {
@@ -107,8 +114,12 @@ export function createDemoProject(): Project {
     title: "Ночной трамвай",
     logline:
       "Следователь архива ищет пропавшие дневники — и понимает, что город сам редактирует чужие биографии.",
+    synopsis:
+      "Мара Волкова расследует исчезновение дневников пропавших и понимает: архив Кирилла правит версиями правды. Свидетельница Леа и бывший напарник Олег втягивают её в треугольник долгов, тайн и ложных протоколов.",
     format: "Сериал · 6 серий",
     schemaId: schema.id,
+    customCharacterFields: [],
+    customLocationFields: [],
     createdAt: now,
     updatedAt: now,
     characters: [mara, kirill, lea, oleg],
@@ -122,6 +133,7 @@ export function createDemoProject(): Project {
         exposition:
           "Здесь начинается каждый акт. Архив — не склад, а персонаж: он прячет и подсовывает улики.",
         fields: { access: "По пропуску" },
+        refs: [],
       },
       {
         id: "loc_stop",
@@ -132,6 +144,7 @@ export function createDemoProject(): Project {
         exposition:
           "Ключевая локация для экспозиции мира: город живёт по расписанию, которое кто-то переписывает.",
         fields: { access: "Открыто" },
+        refs: [],
       },
       {
         id: "loc_flat",
@@ -141,6 +154,7 @@ export function createDemoProject(): Project {
         description: "Комната-кабинет. На столе — копии чужих дневников.",
         exposition: "Безопасное пространство, которое постепенно перестаёт быть безопасным.",
         fields: { access: "Тайно" },
+        refs: [],
       },
     ],
     relations: [
@@ -225,8 +239,12 @@ export function createCyberpunkDemo(): Project {
     id: "prj_demo_cyber",
     title: "Неоновый долг",
     logline: "Нетраннер должна стереть долг банде — и случайно взламывает память корпорации.",
+    synopsis:
+      "Никс должна закрыть долг банде «Ржавые зубы», но взлом памяти Helix Dynamics делает её целью корп-фиксатора Вокса. Укрытие у медика Юно и ложный курьер Рид превращают побег в охоту на три фронта.",
     format: "Полный метр",
     schemaId: "cyberpunk",
+    customCharacterFields: [],
+    customLocationFields: [],
     createdAt: now,
     updatedAt: now,
     characters: [
@@ -248,6 +266,7 @@ export function createCyberpunkDemo(): Project {
           augment: "Нейропорт gen-3",
           debt: "84 000 кредитов",
         },
+        refs: [],
       },
       {
         id: "char_vox",
@@ -267,6 +286,7 @@ export function createCyberpunkDemo(): Project {
           augment: "Оптика + глушилка",
           debt: "—",
         },
+        refs: [],
       },
       {
         id: "char_juno",
@@ -286,6 +306,7 @@ export function createCyberpunkDemo(): Project {
           augment: "Биорука",
           debt: "Поставки банде",
         },
+        refs: [],
       },
       {
         id: "char_reed",
@@ -305,6 +326,7 @@ export function createCyberpunkDemo(): Project {
           augment: "Нет",
           debt: "Карьера",
         },
+        refs: [],
       },
     ],
     locations: [
@@ -316,6 +338,7 @@ export function createCyberpunkDemo(): Project {
         description: "Подпольная клиника и вход в сеть.",
         exposition: "Дом Никс и точка давления банды.",
         fields: { district: "Нижний город", security: "Уличная" },
+        refs: [],
       },
       {
         id: "loc_helix",
@@ -325,6 +348,7 @@ export function createCyberpunkDemo(): Project {
         description: "Корп-штаб и хранилище памяти.",
         exposition: "Цель третьего акта.",
         fields: { district: "Корп-тауэр", security: "Корп-охрана" },
+        refs: [],
       },
     ],
     relations: [

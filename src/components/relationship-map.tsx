@@ -35,7 +35,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { pairInsight, relationPressure } from "@/lib/relations-analysis";
-import { getSchema } from "@/lib/schemas";
+import { getCharacterFields } from "@/lib/project-fields";
 import type { Project, Relation, RelationKind } from "@/lib/types";
 import { RELATION_COLORS, RELATION_LABELS, ROLE_LABELS } from "@/lib/types";
 
@@ -61,8 +61,8 @@ type ViewMode = "map" | "matrix";
 
 export function RelationshipMap({ project }: { project: Project }) {
   const { upsertCharacter, upsertRelation, removeRelation, newId } = useStore();
-  const schema = getSchema(project.schemaId);
-  const highlightKeys = schema.characterFields
+  const schemaFields = getCharacterFields(project);
+  const highlightKeys = schemaFields
     .filter((field) => field.highlight)
     .map((field) => field.key);
 

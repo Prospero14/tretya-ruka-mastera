@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { Pencil, Plus, Trash2 } from "lucide-react";
+import { CustomFieldsEditor } from "@/components/custom-fields-editor";
+import { RefSearch } from "@/components/ref-search";
 import { useStore } from "@/components/store-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,7 +25,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { emptyFieldsFor } from "@/lib/relations-analysis";
-import { getSchema } from "@/lib/schemas";
+import { getLocationFields } from "@/lib/project-fields";
 import type { Location, Project, SchemaField } from "@/lib/types";
 
 function blankLocation(id: string, fieldKeys: string[]): Location {
@@ -35,13 +37,14 @@ function blankLocation(id: string, fieldKeys: string[]): Location {
     description: "",
     exposition: "",
     fields: emptyFieldsFor(fieldKeys),
+    refs: [],
   };
 }
 
 export function LocationsPanel({ project }: { project: Project }) {
   const { upsertLocation, removeLocation, newId } = useStore();
-  const schema = getSchema(project.schemaId);
-  const fieldKeys = schema.locationFields.map((field) => field.key);
+  const schemaFields = getLocationFields(project);
+  const fieldKeys = schemaFields.map((field) => field.key);
   const [draft, setDraft] = useState<Location | null>(null);
 
   return (
@@ -52,7 +55,7 @@ export function LocationsPanel({ project }: { project: Project }) {
             Локации
           </h2>
           <p className="text-sm text-[var(--ink-muted)]">
-            Шаблон «{schema.name}»: настроение, доступ и поля мира.
+            Настроение, доступ и свои поля мира.
           </p>
         </div>
         <Button
@@ -63,6 +66,8 @@ export function LocationsPanel({ project }: { project: Project }) {
           Добавить
         </Button>
       </div>
+
+      <CustomFieldsEditor project={project} kind="location" />
 
       {project.locations.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-[var(--line)] bg-white/50 px-5 py-10 text-center">
@@ -83,7 +88,7 @@ export function LocationsPanel({ project }: { project: Project }) {
                   <div className="flex flex-wrap items-center gap-2">
                     <h3 className="text-base font-semibold text-[var(--ink)]">{location.name}</h3>
                     {location.type ? <Badge variant="secondary">{location.type}</Badge> : null}
-                    {schema.locationFields
+                    {schemaFields
                       .filter((field) => field.highlight && location.fields?.[field.key])
                       .map((field) => (
                         <Badge key={field.key} variant="outline">
@@ -114,6 +119,7 @@ export function LocationsPanel({ project }: { project: Project }) {
                       setDraft({
                         ...location,
                         fields: { ...emptyFieldsFor(fieldKeys), ...location.fields },
+                        refs: location.refs || [],
                       })
                     }
                     aria-label="Редактировать"
@@ -160,7 +166,7 @@ export function LocationsPanel({ project }: { project: Project }) {
                   onChange={(event) => setDraft({ ...draft, type: event.target.value })}
                 />
               </div>
-              {schema.locationFields.map((field) => (
+              {schemaFields.map((field) => (
                 <SchemaFieldInput
                   key={field.key}
                   field={field}
@@ -200,6 +206,11 @@ export function LocationsPanel({ project }: { project: Project }) {
                   rows={3}
                 />
               </div>
+              <RefSearch
+                seedQuery={`${draft.name || "location"} ${draft.mood || ""} film location reference`.trim()}
+                refs={draft.refs || []}
+                onChange={(refs) => setDraft({ ...draft, refs })}
+              />
             </div>
           ) : null}
           <DialogFooter>
@@ -215,6 +226,7 @@ export function LocationsPanel({ project }: { project: Project }) {
                   ...draft,
                   name: draft.name.trim(),
                   fields: { ...emptyFieldsFor(fieldKeys), ...draft.fields },
+                  refs: draft.refs || [],
                 });
                 setDraft(null);
               }}

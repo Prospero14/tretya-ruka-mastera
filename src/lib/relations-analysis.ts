@@ -136,10 +136,10 @@ export function ensureCharacterFields(
   keys: string[],
 ): Character {
   const fields = { ...emptyFieldsFor(keys), ...character.fields };
-  return { ...character, fields };
+  return { ...character, fields, refs: character.refs || [] };
 }
 
 export function ensureLocationFields(location: Location, keys: string[]): Location {
   const fields = { ...emptyFieldsFor(keys), ...location.fields };
-  return { ...location, fields };
+  return { ...location, fields, refs: location.refs || [] };
 }

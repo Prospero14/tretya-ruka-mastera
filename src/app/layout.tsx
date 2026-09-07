@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Manrope } from "next/font/google";
 import { StoreProvider } from "@/components/store-provider";
+import { ReminderPopup } from "@/components/reminder-popup";
 import "./globals.css";
 
 const display = Fraunces({
@@ -42,6 +43,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="flex min-h-full flex-col font-sans text-[var(--ink)]">
         <StoreProvider>
           <div className="app-shell flex min-h-full flex-1 flex-col">{children}</div>
+          <ReminderPopup />
         </StoreProvider>
       </body>
     </html>

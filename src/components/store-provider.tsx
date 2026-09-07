@@ -18,12 +18,14 @@ import type {
   Location,
   Project,
   Relation,
+  ReminderState,
 } from "@/lib/types";
 import { APP_DATA_VERSION } from "@/lib/types";
 
 interface StoreValue {
   ready: boolean;
   projects: Project[];
+  reminders: ReminderState;
   createProject: (title: string, schemaId?: string) => Project;
   updateProject: (project: Project) => void;
   deleteProject: (id: string) => void;
@@ -36,6 +38,8 @@ interface StoreValue {
   removeRelation: (projectId: string, relationId: string) => void;
   upsertExposition: (projectId: string, note: ExpositionNote) => void;
   removeExposition: (projectId: string, noteId: string) => void;
+  markReminderShown: () => void;
+  snoozeReminders: (hours: number) => void;
   newId: typeof uid;
 }
 
@@ -58,6 +62,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [data, setData] = useState<AppData>({
     version: APP_DATA_VERSION,
     projects: [],
+    reminders: { shownAt: [] },
   });
   const [ready, setReady] = useState(false);
 
@@ -205,10 +210,32 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     );
   }, []);
 
+  const markReminderShown = useCallback(() => {
+    setData((prev) => ({
+      ...prev,
+      reminders: {
+        shownAt: [...(prev.reminders?.shownAt || []), new Date().toISOString()],
+        snoozedUntil: prev.reminders?.snoozedUntil,
+      },
+    }));
+  }, []);
+
+  const snoozeReminders = useCallback((hours: number) => {
+    const until = new Date(Date.now() + hours * 60 * 60 * 1000).toISOString();
+    setData((prev) => ({
+      ...prev,
+      reminders: {
+        shownAt: prev.reminders?.shownAt || [],
+        snoozedUntil: until,
+      },
+    }));
+  }, []);
+
   const value = useMemo<StoreValue>(
     () => ({
       ready,
       projects: data.projects,
+      reminders: data.reminders || { shownAt: [] },
       createProject,
       updateProject,
       deleteProject,
@@ -221,11 +248,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       removeRelation,
       upsertExposition,
       removeExposition,
+      markReminderShown,
+      snoozeReminders,
       newId: uid,
     }),
     [
       ready,
       data.projects,
+      data.reminders,
       createProject,
       updateProject,
       deleteProject,
@@ -238,6 +268,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       removeRelation,
       upsertExposition,
       removeExposition,
+      markReminderShown,
+      snoozeReminders,
     ],
   );
 

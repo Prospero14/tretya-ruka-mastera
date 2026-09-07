@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import {
   ArrowLeft,
   BookOpenText,
+  FileText,
   Map as MapIcon,
   MapPinned,
   Users,
@@ -12,6 +13,7 @@ import {
 import { CharactersPanel } from "@/components/characters-panel";
 import { ExpositionPanel } from "@/components/exposition-panel";
 import { LocationsPanel } from "@/components/locations-panel";
+import { OverviewPanel } from "@/components/overview-panel";
 import { RelationshipMap } from "@/components/relationship-map";
 import { useStore } from "@/components/store-provider";
 import { Input } from "@/components/ui/input";
@@ -26,18 +28,19 @@ import { Textarea } from "@/components/ui/textarea";
 import { PROJECT_SCHEMAS, getSchema } from "@/lib/schemas";
 import type { Project } from "@/lib/types";
 
-type Tab = "characters" | "locations" | "map" | "exposition";
+type Tab = "overview" | "characters" | "locations" | "map" | "exposition";
 
 const TABS: { id: Tab; label: string; icon: typeof Users }[] = [
-  { id: "characters", label: "Персонажи", icon: Users },
-  { id: "locations", label: "Локации", icon: MapPinned },
+  { id: "overview", label: "Обзор", icon: FileText },
+  { id: "characters", label: "Герои", icon: Users },
+  { id: "locations", label: "Места", icon: MapPinned },
   { id: "map", label: "Карта", icon: MapIcon },
-  { id: "exposition", label: "Экспозиция", icon: BookOpenText },
+  { id: "exposition", label: "Экспо", icon: BookOpenText },
 ];
 
 export function ProjectWorkspace({ projectId }: { projectId: string }) {
   const { ready, getProject, updateProject } = useStore();
-  const [tab, setTab] = useState<Tab>("characters");
+  const [tab, setTab] = useState<Tab>("overview");
   const project = getProject(projectId);
 
   if (!ready) {
@@ -83,6 +86,7 @@ function Workspace({
 }) {
   const counts = useMemo(
     () => ({
+      overview: project.synopsis.trim() ? 1 : 0,
       characters: project.characters.length,
       locations: project.locations.length,
       map: project.relations.length,
@@ -151,7 +155,7 @@ function Workspace({
       </header>
 
       <nav className="sticky top-0 z-20 -mx-4 border-b border-[var(--line)] bg-[color-mix(in_oklab,var(--paper)_88%,white)]/90 px-2 backdrop-blur sm:-mx-0 sm:rounded-2xl sm:border sm:px-2">
-        <ul className="grid grid-cols-4 gap-1 py-2">
+        <ul className="grid grid-cols-5 gap-1 py-2">
           {TABS.map((item) => {
             const Icon = item.icon;
             const active = tab === item.id;
@@ -160,7 +164,7 @@ function Workspace({
                 <button
                   type="button"
                   onClick={() => setTab(item.id)}
-                  className={`flex w-full flex-col items-center gap-0.5 rounded-xl px-1 py-2 text-[11px] transition sm:flex-row sm:justify-center sm:gap-1.5 sm:px-2 sm:text-sm ${
+                  className={`flex w-full flex-col items-center gap-0.5 rounded-xl px-1 py-2 text-[10px] transition sm:text-[11px] ${
                     active
                       ? "bg-[var(--ink)] text-white"
                       : "text-[var(--ink-muted)] hover:bg-white/70 hover:text-[var(--ink)]"
@@ -169,7 +173,7 @@ function Workspace({
                   <Icon className="size-4 shrink-0" />
                   <span className="truncate">{item.label}</span>
                   <span
-                    className={`rounded-md px-1 text-[10px] sm:text-[11px] ${
+                    className={`rounded-md px-1 text-[10px] ${
                       active ? "bg-white/20" : "bg-[var(--line)] text-[var(--ink)]"
                     }`}
                   >
@@ -183,6 +187,9 @@ function Workspace({
       </nav>
 
       <div className="min-h-[50vh]">
+        {tab === "overview" ? (
+          <OverviewPanel project={project} onChange={updateProject} />
+        ) : null}
         {tab === "characters" ? <CharactersPanel project={project} /> : null}
         {tab === "locations" ? <LocationsPanel project={project} /> : null}
         {tab === "map" ? <RelationshipMap project={project} /> : null}
