@@ -93,7 +93,7 @@ export function CharactersPanel({ project }: { project: Project }) {
           {sorted.map((character) => (
             <li
               key={character.id}
-              className="rounded-2xl border border-[var(--line)] bg-white/75 px-4 py-4"
+              className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] px-4 py-4"
             >
               <div className="flex items-start gap-3">
                 <span
@@ -347,7 +347,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 function EmptyState({ label, hint }: { label: string; hint: string }) {
   return (
-    <div className="rounded-2xl border border-dashed border-[var(--line)] bg-white/50 px-5 py-10 text-center">
+    <div className="rounded-2xl border border-dashed border-[var(--line)] bg-[var(--surface)] px-5 py-10 text-center">
       <p className="font-medium text-[var(--ink)]">{label}</p>
       <p className="mt-1 text-sm text-[var(--ink-muted)]">{hint}</p>
     </div>

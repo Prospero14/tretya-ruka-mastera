@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Dices, MapPinned, Plus, Trash2, Users } from "lucide-react";
 import { useStore } from "@/components/store-provider";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -63,9 +64,12 @@ export function ProjectsHome() {
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(194,59,34,0.18),transparent_42%),radial-gradient(circle_at_bottom_left,rgba(15,118,110,0.16),transparent_45%)]" />
         <div className="pointer-events-none absolute inset-0 opacity-[0.35] [background-image:linear-gradient(rgba(19,41,75,0.05)_1px,transparent_1px)] [background-size:100%_28px]" />
         <div className="relative space-y-4">
-          <p className="font-[family-name:var(--font-display)] text-4xl leading-none tracking-tight text-[var(--ink)] sm:text-5xl">
-            Сюжетник
-          </p>
+          <div className="flex items-start justify-between gap-3">
+            <p className="font-[family-name:var(--font-display)] text-4xl leading-none tracking-tight text-[var(--ink)] sm:text-5xl">
+              Сюжетник
+            </p>
+            <ThemeToggle />
+          </div>
           <h1 className="max-w-xl text-xl font-medium leading-snug text-[var(--ink)] sm:text-2xl">
             Помощник мастера: PC, NPC, локации, связи и синопсис кампании.
           </h1>
@@ -93,7 +97,7 @@ export function ProjectsHome() {
         </div>
 
         {sorted.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-[var(--line)] bg-white/50 px-5 py-10 text-center">
+          <div className="rounded-2xl border border-dashed border-[var(--line)] bg-[var(--surface)] px-5 py-10 text-center">
             <p className="font-medium text-[var(--ink)]">Пока пусто</p>
             <p className="mt-1 text-sm text-[var(--ink-muted)]">
               Создайте проект или откройте демо.
@@ -105,7 +109,7 @@ export function ProjectsHome() {
               const schema = getSchema(project.schemaId);
               return (
                 <li key={project.id}>
-                  <article className="group relative overflow-hidden rounded-2xl border border-[var(--line)] bg-white/80 transition hover:border-[var(--ink)]/20 hover:shadow-[0_18px_40px_rgba(19,41,75,0.08)]">
+                  <article className="group relative overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--surface)] transition hover:border-[var(--ink)]/20 hover:shadow-[0_18px_40px_rgba(19,41,75,0.08)]">
                     <Link href={`/project/?id=${project.id}`} className="block px-5 py-4">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 space-y-1">

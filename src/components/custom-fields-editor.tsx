@@ -64,7 +64,7 @@ export function CustomFieldsEditor({
   }
 
   return (
-    <div className="space-y-3 rounded-2xl border border-dashed border-[var(--line)] bg-white/50 px-4 py-4">
+    <div className="space-y-3 rounded-2xl border border-dashed border-[var(--line)] bg-[var(--surface)] px-4 py-4">
       <div>
         <h3 className="text-sm font-semibold text-[var(--ink)]">Свои поля</h3>
         <p className="text-xs text-[var(--ink-muted)]">
@@ -103,7 +103,7 @@ export function CustomFieldsEditor({
           {custom.map((field) => (
             <li
               key={field.key}
-              className="flex items-center justify-between gap-2 rounded-lg bg-white px-3 py-2 text-sm"
+              className="flex items-center justify-between gap-2 rounded-lg bg-[var(--surface)] px-3 py-2 text-sm"
             >
               <span>{field.label}</span>
               <Button

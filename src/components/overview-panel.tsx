@@ -27,7 +27,7 @@ export function OverviewPanel({
         </p>
       </div>
 
-      <section className="space-y-2 rounded-[1.5rem] border border-[var(--line)] bg-white/80 px-4 py-4 sm:px-5">
+      <section className="space-y-2 rounded-[1.5rem] border border-[var(--line)] bg-[var(--surface)] px-4 py-4 sm:px-5">
         <Label className="text-[11px] uppercase tracking-[0.16em] text-[var(--ink-muted)]">
           Краткий синопсис
         </Label>
@@ -55,7 +55,7 @@ export function OverviewPanel({
           Дыры сюжета
         </h3>
         {gaps.length === 0 ? (
-          <p className="rounded-xl border border-dashed border-[var(--line)] bg-white/50 px-4 py-6 text-sm text-[var(--ink-muted)]">
+          <p className="rounded-xl border border-dashed border-[var(--line)] bg-[var(--surface)] px-4 py-6 text-sm text-[var(--ink-muted)]">
             По чек-листу всё закрыто. Можно углублять карту и экспозицию.
           </p>
         ) : (
@@ -66,7 +66,7 @@ export function OverviewPanel({
                 className={`rounded-xl border px-3 py-2 text-sm ${
                   gap.severity === "high"
                     ? "border-[#fecaca] bg-[#fef2f2] text-[#991b1b]"
-                    : "border-[var(--line)] bg-white/70 text-[var(--ink-muted)]"
+                    : "border-[var(--line)] bg-[var(--surface)] text-[var(--ink-muted)]"
                 }`}
               >
                 {gap.label}

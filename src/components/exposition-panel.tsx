@@ -57,7 +57,7 @@ export function ExpositionPanel({ project }: { project: Project }) {
       </div>
 
       {project.exposition.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-[var(--line)] bg-white/50 px-5 py-10 text-center">
+        <div className="rounded-2xl border border-dashed border-[var(--line)] bg-[var(--surface)] px-5 py-10 text-center">
           <p className="font-medium text-[var(--ink)]">Экспозиция пуста</p>
           <p className="mt-1 text-sm text-[var(--ink-muted)]">
             Зафиксируйте правила мира и тон первого акта.
@@ -68,7 +68,7 @@ export function ExpositionPanel({ project }: { project: Project }) {
           {project.exposition.map((note) => (
             <li
               key={note.id}
-              className="rounded-2xl border border-[var(--line)] bg-white/75 px-4 py-4"
+              className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] px-4 py-4"
             >
               <div className="flex items-start gap-3">
                 <div className="min-w-0 flex-1 space-y-2">

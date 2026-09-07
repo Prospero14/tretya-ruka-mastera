@@ -136,7 +136,7 @@ export function RelationshipMap({ project }: { project: Project }) {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <div className="inline-flex rounded-xl border border-[var(--line)] bg-white/70 p-1">
+          <div className="inline-flex rounded-xl border border-[var(--line)] bg-[var(--surface)] p-1">
             <button
               type="button"
               className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs ${
@@ -174,16 +174,16 @@ export function RelationshipMap({ project }: { project: Project }) {
       </div>
 
       {project.characters.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-[var(--line)] bg-white/50 px-5 py-10 text-center">
+        <div className="rounded-2xl border border-dashed border-[var(--line)] bg-[var(--surface)] px-5 py-10 text-center">
           <p className="font-medium text-[var(--ink)]">Некого связывать</p>
           <p className="mt-1 text-sm text-[var(--ink-muted)]">
             Добавьте PC и NPC — схема отношений оживёт.
           </p>
         </div>
       ) : view === "graph" ? (
-        <div className="overflow-hidden rounded-2xl border border-[var(--line)] bg-[#f4f7fb]">
+        <div className="overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--graph-bg)]">
           {linkFrom ? (
-            <p className="border-b border-[var(--line)] bg-white/80 px-3 py-2 text-xs text-[var(--ink-muted)]">
+            <p className="border-b border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-xs text-[var(--ink-muted)]">
               Выберите второго персонажа для связи (или тапните того же, чтобы отменить).
             </p>
           ) : null}
@@ -221,7 +221,7 @@ export function RelationshipMap({ project }: { project: Project }) {
                     width={92}
                     height={20}
                     rx={8}
-                    fill="white"
+                    fill="var(--surface)"
                     opacity={0.92}
                   />
                   <text
@@ -255,7 +255,7 @@ export function RelationshipMap({ project }: { project: Project }) {
                 >
                   <circle
                     r={28}
-                    fill="#fffdf8"
+                    fill="var(--node-fill)"
                     stroke={selected ? "#c23b22" : node.color}
                     strokeWidth={selected ? 3 : 2}
                   />
@@ -319,7 +319,7 @@ export function RelationshipMap({ project }: { project: Project }) {
               return (
                 <li
                   key={relation.id}
-                  className="flex items-start gap-3 rounded-xl border border-[var(--line)] bg-white/70 px-3 py-3"
+                  className="flex items-start gap-3 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-3"
                 >
                   <Link2
                     className="mt-0.5 size-4 shrink-0"
@@ -547,7 +547,7 @@ function InsightCard({
   onEdit: () => void;
 }) {
   return (
-    <div className="rounded-xl border border-[var(--line)] bg-white/80 px-4 py-3 text-sm">
+    <div className="rounded-xl border border-[var(--line)] bg-[var(--surface)] px-4 py-3 text-sm">
       <p className="font-medium text-[var(--ink)]">{title}</p>
       <p className="mt-1 leading-relaxed text-[var(--ink-muted)]">{body}</p>
       <Button className="mt-2" size="sm" variant="outline" onClick={onEdit}>
@@ -569,11 +569,11 @@ function RelationMatrix({
   const chars = project.characters;
 
   return (
-    <div className="overflow-x-auto rounded-2xl border border-[var(--line)] bg-white/80">
+    <div className="overflow-x-auto rounded-2xl border border-[var(--line)] bg-[var(--surface)]">
       <table className="min-w-full border-collapse text-left text-xs">
         <thead>
           <tr>
-            <th className="sticky left-0 bg-[#f7fafc] p-2 font-semibold text-[var(--ink)]">
+            <th className="sticky left-0 bg-[var(--muted)] p-2 font-semibold text-[var(--ink)]">
               Кто → кого
             </th>
             {chars.map((character) => (
@@ -586,7 +586,7 @@ function RelationMatrix({
         <tbody>
           {chars.map((row) => (
             <tr key={row.id} className="border-t border-[var(--line)]">
-              <th className="sticky left-0 bg-[#f7fafc] p-2 font-medium text-[var(--ink)]">
+              <th className="sticky left-0 bg-[var(--muted)] p-2 font-medium text-[var(--ink)]">
                 {row.name}
               </th>
               {chars.map((col) => {
@@ -609,7 +609,7 @@ function RelationMatrix({
                       ? "bg-[#ffedd5] text-[#9a3412]"
                       : pressure > 0
                         ? "bg-[#ecfdf5] text-[#065f46]"
-                        : "bg-white text-[var(--ink-muted)]";
+                        : "bg-[var(--surface)] text-[var(--ink-muted)]";
                 return (
                   <td key={col.id} className="p-1">
                     <button

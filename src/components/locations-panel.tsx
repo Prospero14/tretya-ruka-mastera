@@ -70,7 +70,7 @@ export function LocationsPanel({ project }: { project: Project }) {
       <CustomFieldsEditor project={project} kind="location" />
 
       {project.locations.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-[var(--line)] bg-white/50 px-5 py-10 text-center">
+        <div className="rounded-2xl border border-dashed border-[var(--line)] bg-[var(--surface)] px-5 py-10 text-center">
           <p className="font-medium text-[var(--ink)]">Нет локаций</p>
           <p className="mt-1 text-sm text-[var(--ink-muted)]">
             Добавьте ключевые пространства истории.
@@ -81,7 +81,7 @@ export function LocationsPanel({ project }: { project: Project }) {
           {project.locations.map((location) => (
             <li
               key={location.id}
-              className="rounded-2xl border border-[var(--line)] bg-white/75 px-4 py-4"
+              className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] px-4 py-4"
             >
               <div className="flex items-start gap-3">
                 <div className="min-w-0 flex-1 space-y-2">

@@ -51,11 +51,14 @@
 :root {
   --paper: #e8eef5;
   --panel: rgba(255, 252, 248, 0.82);
+  --surface: rgba(255, 255, 255, 0.78);
   --ink: #13294b;
   --ink-muted: #5b6b82;
   --line: rgba(19, 41, 75, 0.12);
   --signal: #c23b22;
   --signal-strong: #a12f1b;
+  --graph-bg: #f4f7fb;
+  --node-fill: #fffdf8;
   --background: var(--paper);
   --foreground: var(--ink);
   --card: #fffdf9;
@@ -88,6 +91,60 @@
   --sidebar-accent-foreground: var(--ink);
   --sidebar-border: var(--line);
   --sidebar-ring: #0f766e;
+  --shell-a: rgba(194, 59, 34, 0.14);
+  --shell-b: rgba(15, 118, 110, 0.14);
+  --shell-base: linear-gradient(180deg, #f3f6fa 0%, var(--paper) 42%, #e3ebf4 100%);
+  --shell-rule: rgba(19, 41, 75, 0.04);
+  --shell-glow: rgba(255, 255, 255, 0.35);
+}
+
+.dark {
+  --paper: #0f141c;
+  --panel: rgba(22, 28, 38, 0.92);
+  --surface: rgba(28, 36, 48, 0.92);
+  --ink: #e7edf6;
+  --ink-muted: #9aa8bc;
+  --line: rgba(231, 237, 246, 0.12);
+  --signal: #e06a52;
+  --signal-strong: #c24f39;
+  --graph-bg: #121821;
+  --node-fill: #1a2230;
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: #161e2a;
+  --card-foreground: var(--ink);
+  --popover: #161e2a;
+  --popover-foreground: var(--ink);
+  --primary: #e7edf6;
+  --primary-foreground: #10151d;
+  --secondary: #1f2a38;
+  --secondary-foreground: var(--ink);
+  --muted: #1c2533;
+  --muted-foreground: var(--ink-muted);
+  --accent: #1a3030;
+  --accent-foreground: var(--ink);
+  --destructive: oklch(0.65 0.2 25);
+  --border: var(--line);
+  --input: rgba(231, 237, 246, 0.14);
+  --ring: #2dd4bf;
+  --chart-1: #2dd4bf;
+  --chart-2: #e06a52;
+  --chart-3: #60a5fa;
+  --chart-4: #fbbf24;
+  --chart-5: #94a3b8;
+  --sidebar: #121821;
+  --sidebar-foreground: var(--ink);
+  --sidebar-primary: #e7edf6;
+  --sidebar-primary-foreground: #10151d;
+  --sidebar-accent: #1c2533;
+  --sidebar-accent-foreground: var(--ink);
+  --sidebar-border: var(--line);
+  --sidebar-ring: #2dd4bf;
+  --shell-a: rgba(224, 106, 82, 0.16);
+  --shell-b: rgba(45, 212, 191, 0.1);
+  --shell-base: linear-gradient(180deg, #0c1017 0%, var(--paper) 45%, #101820 100%);
+  --shell-rule: rgba(231, 237, 246, 0.05);
+  --shell-glow: rgba(45, 212, 191, 0.08);
 }
 
 @layer base {
@@ -104,9 +161,9 @@
 
 .app-shell {
   background:
-    radial-gradient(circle at 12% -10%, rgba(194, 59, 34, 0.14), transparent 36%),
-    radial-gradient(circle at 88% 0%, rgba(15, 118, 110, 0.14), transparent 32%),
-    linear-gradient(180deg, #f3f6fa 0%, var(--paper) 42%, #e3ebf4 100%);
+    radial-gradient(circle at 12% -10%, var(--shell-a), transparent 36%),
+    radial-gradient(circle at 88% 0%, var(--shell-b), transparent 32%),
+    var(--shell-base);
   background-attachment: fixed;
 }
 
@@ -117,8 +174,8 @@
   inset: 0;
   opacity: 0.22;
   background-image:
-    linear-gradient(rgba(19, 41, 75, 0.04) 1px, transparent 1px),
-    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.35), transparent 28%);
+    linear-gradient(var(--shell-rule) 1px, transparent 1px),
+    radial-gradient(circle at 20% 20%, var(--shell-glow), transparent 28%);
   background-size: 100% 30px, auto;
   z-index: 0;
 }
@@ -142,8 +199,4 @@
 .app-shell main,
 .app-shell > div {
   animation: rise-in 420ms ease-out;
-}
-
-.react-flow__attribution {
-  display: none;
 }

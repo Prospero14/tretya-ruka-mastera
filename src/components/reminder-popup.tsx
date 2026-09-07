@@ -52,7 +52,7 @@ export function ReminderPopup() {
           {topGaps.map((gap) => (
             <li
               key={gap.id}
-              className="rounded-xl border border-[var(--line)] bg-white/80 px-3 py-2 text-sm"
+              className="rounded-xl border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm"
             >
               <p className="font-medium text-[var(--ink)]">{gap.projectTitle}</p>
               <p className="text-[var(--ink-muted)]">{gap.label}</p>

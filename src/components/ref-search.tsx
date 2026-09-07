@@ -76,7 +76,7 @@ export function RefSearch({
           {refs.map((ref) => (
             <li
               key={ref}
-              className="flex items-center gap-2 rounded-lg bg-white/80 px-2 py-1.5 text-xs"
+              className="flex items-center gap-2 rounded-lg bg-[var(--surface)] px-2 py-1.5 text-xs"
             >
               <a
                 href={ref}

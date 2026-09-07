@@ -15,6 +15,7 @@ import { ExpositionPanel } from "@/components/exposition-panel";
 import { LocationsPanel } from "@/components/locations-panel";
 import { OverviewPanel } from "@/components/overview-panel";
 import { RelationshipMap } from "@/components/relationship-map";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { useStore } from "@/components/store-provider";
 import { Input } from "@/components/ui/input";
 import {
@@ -62,7 +63,7 @@ export function ProjectWorkspace({ projectId }: { projectId: string }) {
         </p>
         <Link
           href="/"
-          className="inline-flex h-8 items-center rounded-lg border border-[var(--line)] bg-white px-3 text-sm hover:bg-[var(--muted)]"
+          className="inline-flex h-8 items-center rounded-lg border border-[var(--line)] bg-[var(--surface)] px-3 text-sm hover:bg-[var(--muted)]"
         >
           К проектам
         </Link>
@@ -97,14 +98,15 @@ function Workspace({
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-5 px-4 pb-28 pt-5 sm:px-6">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between gap-2">
         <Link
           href="/"
-          className="-ml-2 inline-flex h-7 items-center gap-1 rounded-lg px-2.5 text-sm text-[var(--ink-muted)] hover:bg-white/70 hover:text-[var(--ink)]"
+          className="-ml-2 inline-flex h-7 items-center gap-1 rounded-lg px-2.5 text-sm text-[var(--ink-muted)] hover:bg-[var(--surface)] hover:text-[var(--ink)]"
         >
           <ArrowLeft className="size-4" />
           Проекты
         </Link>
+        <ThemeToggle />
       </div>
 
       <header className="space-y-3 rounded-[1.5rem] border border-[var(--line)] bg-[var(--panel)] px-4 py-5 sm:px-6">
@@ -137,7 +139,7 @@ function Workspace({
               updateProject({ ...project, schemaId: value });
             }}
           >
-            <SelectTrigger className="h-8 w-full bg-white/70">
+            <SelectTrigger className="h-8 w-full bg-[var(--surface)]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -154,7 +156,7 @@ function Workspace({
         </div>
       </header>
 
-      <nav className="sticky top-0 z-20 -mx-4 border-b border-[var(--line)] bg-[color-mix(in_oklab,var(--paper)_88%,white)]/90 px-2 backdrop-blur sm:-mx-0 sm:rounded-2xl sm:border sm:px-2">
+      <nav className="sticky top-0 z-20 -mx-4 border-b border-[var(--line)] bg-[var(--panel)]/90 px-2 backdrop-blur sm:-mx-0 sm:rounded-2xl sm:border sm:px-2">
         <ul className="grid grid-cols-5 gap-1 py-2">
           {TABS.map((item) => {
             const Icon = item.icon;
@@ -166,15 +168,17 @@ function Workspace({
                   onClick={() => setTab(item.id)}
                   className={`flex w-full flex-col items-center gap-0.5 rounded-xl px-1 py-2 text-[10px] transition sm:text-[11px] ${
                     active
-                      ? "bg-[var(--ink)] text-white"
-                      : "text-[var(--ink-muted)] hover:bg-white/70 hover:text-[var(--ink)]"
+                      ? "bg-[var(--ink)] text-[var(--primary-foreground)]"
+                      : "text-[var(--ink-muted)] hover:bg-[var(--surface)] hover:text-[var(--ink)]"
                   }`}
                 >
                   <Icon className="size-4 shrink-0" />
                   <span className="truncate">{item.label}</span>
                   <span
                     className={`rounded-md px-1 text-[10px] ${
-                      active ? "bg-white/20" : "bg-[var(--line)] text-[var(--ink)]"
+                      active
+                        ? "bg-[var(--primary-foreground)]/20"
+                        : "bg-[var(--line)] text-[var(--ink)]"
                     }`}
                   >
                     {counts[item.id]}
