@@ -16,13 +16,12 @@ const sans = Manrope({
 });
 
 export const metadata: Metadata = {
-  title: "Сюжетник — помощник мастера",
-  description:
-    "Записная книжка для настольных ролёвок: PC/NPC, локации, связи, синопсис и экспозиция.",
-  applicationName: "Сюжетник",
+  title: "Третья рука мастера",
+  description: "Запиши свои сюжетные повороты — пока они ещё горячие.",
+  applicationName: "Третья рука мастера",
   appleWebApp: {
     capable: true,
-    title: "Сюжетник",
+    title: "Третья рука",
     statusBarStyle: "default",
   },
   manifest: "/manifest.webmanifest",

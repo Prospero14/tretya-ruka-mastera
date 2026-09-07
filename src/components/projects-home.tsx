@@ -63,23 +63,19 @@ export function ProjectsHome() {
       <header className="relative overflow-hidden rounded-[1.75rem] border border-[var(--line)] bg-[var(--panel)] px-5 py-8 sm:px-8">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(194,59,34,0.18),transparent_42%),radial-gradient(circle_at_bottom_left,rgba(15,118,110,0.16),transparent_45%)]" />
         <div className="pointer-events-none absolute inset-0 opacity-[0.35] [background-image:linear-gradient(rgba(19,41,75,0.05)_1px,transparent_1px)] [background-size:100%_28px]" />
-        <div className="relative space-y-4">
+        <div className="relative space-y-5">
           <div className="flex items-start justify-between gap-3">
-            <p className="font-[family-name:var(--font-display)] text-4xl leading-none tracking-tight text-[var(--ink)] sm:text-5xl">
-              Сюжетник
+            <p className="max-w-[14ch] font-[family-name:var(--font-display)] text-4xl leading-[0.95] tracking-tight text-[var(--ink)] sm:max-w-none sm:text-5xl">
+              Третья рука мастера
             </p>
             <ThemeToggle />
           </div>
-          <h1 className="max-w-xl text-xl font-medium leading-snug text-[var(--ink)] sm:text-2xl">
-            Помощник мастера: PC, NPC, локации, связи и синопсис кампании.
-          </h1>
-          <p className="max-w-lg text-sm leading-relaxed text-[var(--ink-muted)]">
-            Для настольных ролёвок и рассказов за столом. У киберпанка — фракции и корпы, у
-            фэнтези — классы и расы. «Связи» — это схема отношений, не карта местности.
+          <p className="max-w-md text-base leading-relaxed text-[var(--ink-muted)] sm:text-lg">
+            Запиши свои сюжетные повороты — пока они ещё горячие.
           </p>
           <Button
             size="lg"
-            className="mt-2 bg-[var(--signal)] text-white hover:bg-[var(--signal-strong)]"
+            className="mt-1 bg-[var(--signal)] text-white hover:bg-[var(--signal-strong)]"
             onClick={() => setOpen(true)}
           >
             <Plus className="size-4" />
