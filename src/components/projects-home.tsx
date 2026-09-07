@@ -106,7 +106,7 @@ export function ProjectsHome() {
               return (
                 <li key={project.id}>
                   <article className="group relative overflow-hidden rounded-2xl border border-[var(--line)] bg-white/80 transition hover:border-[var(--ink)]/20 hover:shadow-[0_18px_40px_rgba(19,41,75,0.08)]">
-                    <Link href={`/project?id=${project.id}`} className="block px-5 py-4">
+                    <Link href={`/project/?id=${project.id}`} className="block px-5 py-4">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 space-y-1">
                           <h3 className="truncate font-[family-name:var(--font-display)] text-2xl text-[var(--ink)]">
@@ -210,7 +210,7 @@ export function ProjectsHome() {
                 const project = createProject(title, schemaId);
                 setTitle("");
                 setOpen(false);
-                window.location.href = `/project?id=${project.id}`;
+                window.location.href = `/project/?id=${project.id}`;
               }}
             >
               Создать
