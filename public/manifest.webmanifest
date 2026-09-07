@@ -1,0 +1,22 @@
+{
+  "name": "Сюжетник",
+  "short_name": "Сюжетник",
+  "description": "Помощник сценариста: персонажи, локации, карта связей и экспозиция",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#e8eef5",
+  "theme_color": "#13294b",
+  "lang": "ru",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
