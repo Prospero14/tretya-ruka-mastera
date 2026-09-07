@@ -67,7 +67,7 @@ export function RelationshipMap({ project }: { project: Project }) {
           label: (
             <div className="min-w-[110px] px-1 py-0.5 text-center">
               <div className="text-[11px] font-semibold leading-tight">{character.name}</div>
-              <div className="text-[10px] opacity-70">{character.role}</div>
+              <div className="text-[10px] opacity-70">{ROLE_LABELS[character.role]}</div>
             </div>
           ),
         },
