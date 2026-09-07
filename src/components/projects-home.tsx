@@ -41,6 +41,7 @@ export function ProjectsHome() {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [schemaId, setSchemaId] = useState("fantasy");
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const sorted = useMemo(
     () =>
@@ -49,6 +50,8 @@ export function ProjectsHome() {
       ),
     [projects],
   );
+
+  const deleteTarget = sorted.find((project) => project.id === deleteId);
 
   if (!ready) {
     return (
@@ -105,49 +108,56 @@ export function ProjectsHome() {
               const schema = getSchema(project.schemaId);
               return (
                 <li key={project.id}>
-                  <article className="group relative overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--surface)] transition hover:border-[var(--ink)]/20 hover:shadow-[0_18px_40px_rgba(19,41,75,0.08)]">
-                    <Link href={`/project/?id=${project.id}`} className="block px-5 py-4">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0 space-y-1">
-                          <h3 className="truncate font-[family-name:var(--font-display)] text-2xl text-[var(--ink)]">
-                            {project.title}
-                          </h3>
-                          <p className="line-clamp-2 text-sm text-[var(--ink-muted)]">
-                            {project.logline || "Логлайн ещё не задан"}
-                          </p>
+                  <article className="overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--surface)] transition hover:border-[var(--ink)]/20">
+                    <div className="flex items-stretch gap-1">
+                      <Link
+                        href={`/project/?id=${project.id}`}
+                        className="min-w-0 flex-1 px-5 py-4"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0 space-y-1">
+                            <h3 className="truncate font-[family-name:var(--font-display)] text-2xl text-[var(--ink)]">
+                              {project.title}
+                            </h3>
+                            <p className="line-clamp-2 text-sm text-[var(--ink-muted)]">
+                              {project.logline || "Логлайн ещё не задан"}
+                            </p>
+                          </div>
+                          <span className="shrink-0 text-xs text-[var(--ink-muted)]">
+                            {formatDate(project.updatedAt)}
+                          </span>
                         </div>
-                        <span className="shrink-0 text-xs text-[var(--ink-muted)]">
-                          {formatDate(project.updatedAt)}
-                        </span>
+                        <div className="mt-4 flex flex-wrap gap-3 text-xs text-[var(--ink-muted)]">
+                          <span className="inline-flex items-center gap-1.5 rounded-md bg-[var(--paper)] px-2 py-1 text-[var(--ink)]">
+                            {schema.name}
+                          </span>
+                          <span className="inline-flex items-center gap-1.5">
+                            <Dices className="size-3.5" />
+                            {project.format || "Формат"}
+                          </span>
+                          <span className="inline-flex items-center gap-1.5">
+                            <Users className="size-3.5" />
+                            {project.characters.length}
+                          </span>
+                          <span className="inline-flex items-center gap-1.5">
+                            <MapPinned className="size-3.5" />
+                            {project.locations.length}
+                          </span>
+                        </div>
+                      </Link>
+                      <div className="flex items-center border-l border-[var(--line)] px-2">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="text-[var(--ink-muted)] hover:text-[var(--signal)]"
+                          onClick={() => setDeleteId(project.id)}
+                          aria-label={`Удалить проект ${project.title}`}
+                        >
+                          <Trash2 className="size-5" />
+                        </Button>
                       </div>
-                      <div className="mt-4 flex flex-wrap gap-3 text-xs text-[var(--ink-muted)]">
-                        <span className="inline-flex items-center gap-1.5 rounded-md bg-[var(--paper)] px-2 py-1 text-[var(--ink)]">
-                          {schema.name}
-                        </span>
-                        <span className="inline-flex items-center gap-1.5">
-                          <Dices className="size-3.5" />
-                          {project.format || "Формат"}
-                        </span>
-                        <span className="inline-flex items-center gap-1.5">
-                          <Users className="size-3.5" />
-                          {project.characters.length}
-                        </span>
-                        <span className="inline-flex items-center gap-1.5">
-                          <MapPinned className="size-3.5" />
-                          {project.locations.length}
-                        </span>
-                      </div>
-                    </Link>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-sm"
-                      className="absolute right-3 top-12 text-[var(--ink-muted)] opacity-0 transition group-hover:opacity-100"
-                      onClick={() => deleteProject(project.id)}
-                      aria-label="Удалить проект"
-                    >
-                      <Trash2 className="size-4" />
-                    </Button>
+                    </div>
                   </article>
                 </li>
               );
@@ -214,6 +224,32 @@ export function ProjectsHome() {
               }}
             >
               Создать
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={Boolean(deleteId)} onOpenChange={(next) => !next && setDeleteId(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Удалить проект?</DialogTitle>
+            <DialogDescription>
+              «{deleteTarget?.title ?? "Проект"}» будет удалён вместе с персонажами, локациями и
+              связями. Это нельзя отменить.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteId(null)}>
+              Отмена
+            </Button>
+            <Button
+              className="bg-[var(--signal)] text-white hover:bg-[var(--signal-strong)]"
+              onClick={() => {
+                if (deleteId) deleteProject(deleteId);
+                setDeleteId(null);
+              }}
+            >
+              Удалить
             </Button>
           </DialogFooter>
         </DialogContent>

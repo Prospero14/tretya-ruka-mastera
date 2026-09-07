@@ -3,6 +3,7 @@ import { Fraunces, Manrope } from "next/font/google";
 import { StoreProvider } from "@/components/store-provider";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ReminderPopup } from "@/components/reminder-popup";
+import { AndroidBackHandler } from "@/components/android-back-handler";
 import "./globals.css";
 
 const display = Fraunces({
@@ -54,6 +55,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="flex min-h-full flex-col font-sans text-[var(--ink)]">
         <ThemeProvider>
           <StoreProvider>
+            <AndroidBackHandler />
             <div className="app-shell flex min-h-full flex-1 flex-col">{children}</div>
             <ReminderPopup />
           </StoreProvider>
