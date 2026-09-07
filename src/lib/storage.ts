@@ -6,12 +6,14 @@ import {
 } from "./relations-analysis";
 import {
   APP_DATA_VERSION,
+  normalizeRelationKind,
+  normalizeRole,
   type AppData,
   type Project,
   type Relation,
 } from "./types";
 
-const STORAGE_KEY = "syuzhetnik.v3";
+const STORAGE_KEY = "syuzhetnik.v4";
 
 function migrateProject(raw: Project): Project {
   const project: Project = {
@@ -19,7 +21,7 @@ function migrateProject(raw: Project): Project {
     synopsis: raw.synopsis ?? "",
     customCharacterFields: raw.customCharacterFields || [],
     customLocationFields: raw.customLocationFields || [],
-    schemaId: raw.schemaId || "noir",
+    schemaId: raw.schemaId || "fantasy",
     characters: raw.characters || [],
     locations: raw.locations || [],
     relations: raw.relations || [],
@@ -35,6 +37,7 @@ function migrateProject(raw: Project): Project {
       ensureCharacterFields(
         {
           ...character,
+          role: normalizeRole(character.role as string),
           fields: character.fields || {},
           refs: character.refs || [],
         },
@@ -53,6 +56,7 @@ function migrateProject(raw: Project): Project {
     ),
     relations: project.relations.map((relation: Relation) => ({
       ...relation,
+      kind: normalizeRelationKind(relation.kind as string),
       tension: relation.tension ?? 3,
       trust: relation.trust ?? 3,
     })),
@@ -75,6 +79,7 @@ export function loadAppData(): AppData {
   try {
     const raw =
       window.localStorage.getItem(STORAGE_KEY) ||
+      window.localStorage.getItem("syuzhetnik.v3") ||
       window.localStorage.getItem("syuzhetnik.v2");
     if (!raw) {
       const seed = seedData();

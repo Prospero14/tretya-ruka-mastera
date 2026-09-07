@@ -20,11 +20,11 @@ export function sharedFactors(
     }
   }
 
-  if (a.role === "protagonist" && b.role === "antagonist") {
-    conflicting.push("роли:протагонист↔антагонист");
+  if (a.role === "pc" && b.role === "villain") {
+    conflicting.push("роли:pc↔антагонист");
   }
-  if (a.role === "antagonist" && b.role === "protagonist") {
-    conflicting.push("роли:антагонист↔протагонист");
+  if (a.role === "villain" && b.role === "pc") {
+    conflicting.push("роли:антагонист↔pc");
   }
 
   return { shared, conflicting };
@@ -39,6 +39,7 @@ export function relationPressure(relation: Relation): number {
     mentor: 2,
     family: 3,
     ally: 1,
+    faction: 2,
     other: 2,
   };
   return Math.min(

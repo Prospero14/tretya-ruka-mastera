@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { Clapperboard, MapPinned, Plus, Trash2, Users } from "lucide-react";
+import { Dices, MapPinned, Plus, Trash2, Users } from "lucide-react";
 import { useStore } from "@/components/store-provider";
 import { Button } from "@/components/ui/button";
 import {
@@ -39,7 +39,7 @@ export function ProjectsHome() {
   const { ready, projects, createProject, deleteProject } = useStore();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
-  const [schemaId, setSchemaId] = useState("cyberpunk");
+  const [schemaId, setSchemaId] = useState("fantasy");
 
   const sorted = useMemo(
     () =>
@@ -52,7 +52,7 @@ export function ProjectsHome() {
   if (!ready) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center text-sm text-[var(--ink-muted)]">
-        Загружаем библию проектов…
+        Загружаем кампании…
       </div>
     );
   }
@@ -67,11 +67,11 @@ export function ProjectsHome() {
             Сюжетник
           </p>
           <h1 className="max-w-xl text-xl font-medium leading-snug text-[var(--ink)] sm:text-2xl">
-            Библия сценария: персонажи, локации, карта связей и экспозиция.
+            Помощник мастера: PC, NPC, локации, связи и синопсис кампании.
           </h1>
           <p className="max-w-lg text-sm leading-relaxed text-[var(--ink-muted)]">
-            У каждого проекта свой шаблон мира: у киберпанка — фракции и корпы, у фэнтези —
-            классы и расы. Данные локально в браузере / приложении.
+            Для настольных ролёвок и рассказов за столом. У киберпанка — фракции и корпы, у
+            фэнтези — классы и расы. «Связи» — это схема отношений, не карта местности.
           </p>
           <Button
             size="lg"
@@ -125,7 +125,7 @@ export function ProjectsHome() {
                           {schema.name}
                         </span>
                         <span className="inline-flex items-center gap-1.5">
-                          <Clapperboard className="size-3.5" />
+                          <Dices className="size-3.5" />
                           {project.format || "Формат"}
                         </span>
                         <span className="inline-flex items-center gap-1.5">

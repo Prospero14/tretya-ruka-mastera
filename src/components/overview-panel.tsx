@@ -23,7 +23,7 @@ export function OverviewPanel({
           Обзор
         </h2>
         <p className="text-sm text-[var(--ink-muted)]">
-          Сначала синопсис — короткая версия истории на одну страницу взгляда.
+          Сначала синопсис — что происходит в кампании / рассказе на один взгляд.
         </p>
       </div>
 
@@ -35,7 +35,7 @@ export function OverviewPanel({
           value={project.synopsis}
           onChange={(event) => onChange({ ...project, synopsis: event.target.value })}
           rows={7}
-          placeholder="Что происходит, кто в центре, чем история держит зрителя — 5–10 предложений."
+          placeholder="Что происходит, кто в центре, чем держит стол — 5–10 предложений для мастера."
           className="min-h-40 resize-y border-0 bg-[var(--paper)]/60 text-base leading-relaxed shadow-none focus-visible:ring-1"
         />
         {!project.synopsis.trim() ? (

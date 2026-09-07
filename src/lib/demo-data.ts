@@ -15,7 +15,7 @@ export function createEmptyProject(
     title,
     logline: "",
     synopsis: "",
-    format: "Полный метр",
+    format: "Кампания / one-shot",
     schemaId,
     customCharacterFields: [],
     customLocationFields: [],
@@ -35,7 +35,7 @@ export function createDemoProject(): Project {
   const mara = {
     id: "char_mara",
     name: "Мара Волкова",
-    role: "protagonist" as const,
+    role: "pc" as const,
     archetype: "Следователь с прошлым",
     goal: "Найти, кто сжигает дневники пропавших",
     flaw: "Не доверяет ничьим показаниям, включая свои",
@@ -54,7 +54,7 @@ export function createDemoProject(): Project {
   const kirill = {
     id: "char_kirill",
     name: "Кирилл Осетров",
-    role: "antagonist" as const,
+    role: "villain" as const,
     archetype: "Архивариус-манипулятор",
     goal: "Стереть следы сети информаторов",
     flaw: "Уверен, что правда опаснее лжи",
@@ -73,7 +73,7 @@ export function createDemoProject(): Project {
   const lea = {
     id: "char_lea",
     name: "Леа",
-    role: "supporting" as const,
+    role: "npc" as const,
     archetype: "Свидетельница / ключ",
     goal: "Остаться невидимой",
     flaw: "Молчит слишком долго",
@@ -92,7 +92,7 @@ export function createDemoProject(): Project {
   const oleg = {
     id: "char_oleg",
     name: "Олег Рамин",
-    role: "supporting" as const,
+    role: "npc" as const,
     archetype: "Бывший напарник",
     goal: "Вернуть Мару в участок",
     flaw: "Ставит процедуру выше человека",
@@ -116,7 +116,7 @@ export function createDemoProject(): Project {
       "Следователь архива ищет пропавшие дневники — и понимает, что город сам редактирует чужие биографии.",
     synopsis:
       "Мара Волкова расследует исчезновение дневников пропавших и понимает: архив Кирилла правит версиями правды. Свидетельница Леа и бывший напарник Олег втягивают её в треугольник долгов, тайн и ложных протоколов.",
-    format: "Сериал · 6 серий",
+    format: "Кампания · 6 сессий",
     schemaId: schema.id,
     customCharacterFields: [],
     customLocationFields: [],
@@ -241,7 +241,7 @@ export function createCyberpunkDemo(): Project {
     logline: "Нетраннер должна стереть долг банде — и случайно взламывает память корпорации.",
     synopsis:
       "Никс должна закрыть долг банде «Ржавые зубы», но взлом памяти Helix Dynamics делает её целью корп-фиксатора Вокса. Укрытие у медика Юно и ложный курьер Рид превращают побег в охоту на три фронта.",
-    format: "Полный метр",
+    format: "Кампания · one-shot ок",
     schemaId: "cyberpunk",
     customCharacterFields: [],
     customLocationFields: [],
@@ -251,7 +251,7 @@ export function createCyberpunkDemo(): Project {
       {
         id: "char_nyx",
         name: "Никс",
-        role: "protagonist",
+        role: "pc",
         archetype: "Нетраннер",
         goal: "Закрыть долг без потери тела",
         flaw: "Не умеет остановиться на полпути",
@@ -271,7 +271,7 @@ export function createCyberpunkDemo(): Project {
       {
         id: "char_vox",
         name: "Вокс",
-        role: "antagonist",
+        role: "villain",
         archetype: "Корп-фиксатор",
         goal: "Зачистить утечку памяти",
         flaw: "Верит в идеальную систему",
@@ -291,7 +291,7 @@ export function createCyberpunkDemo(): Project {
       {
         id: "char_juno",
         name: "Юно",
-        role: "supporting",
+        role: "npc",
         archetype: "Уличный медик",
         goal: "Удержать клинику живой",
         flaw: "Слишком многим должна",
@@ -311,7 +311,7 @@ export function createCyberpunkDemo(): Project {
       {
         id: "char_reed",
         name: "Рид",
-        role: "supporting",
+        role: "npc",
         archetype: "Официал под прикрытием",
         goal: "Собрать дело на Helix",
         flaw: "Использует союзников как приманку",

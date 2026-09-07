@@ -34,7 +34,7 @@ const TABS: { id: Tab; label: string; icon: typeof Users }[] = [
   { id: "overview", label: "Обзор", icon: FileText },
   { id: "characters", label: "Герои", icon: Users },
   { id: "locations", label: "Места", icon: MapPinned },
-  { id: "map", label: "Карта", icon: MapIcon },
+  { id: "map", label: "Связи", icon: MapIcon },
   { id: "exposition", label: "Экспо", icon: BookOpenText },
 ];
 
@@ -123,7 +123,7 @@ function Workspace({
         <Input
           value={project.format}
           onChange={(event) => updateProject({ ...project, format: event.target.value })}
-          placeholder="Формат: полный метр, сериал, пилот…"
+          placeholder="Формат: кампания, one-shot, модуль, арка…"
           className="h-8 max-w-sm border-0 bg-transparent px-0 text-xs uppercase tracking-[0.14em] text-[var(--ink-muted)] shadow-none focus-visible:ring-0"
         />
         <div className="max-w-sm space-y-1">

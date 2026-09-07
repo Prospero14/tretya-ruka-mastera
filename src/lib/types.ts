@@ -1,8 +1,4 @@
-export type CharacterRole =
-  | "protagonist"
-  | "antagonist"
-  | "supporting"
-  | "minor";
+export type CharacterRole = "pc" | "npc" | "villain" | "patron" | "minor";
 
 export type RelationKind =
   | "ally"
@@ -12,6 +8,7 @@ export type RelationKind =
   | "mentor"
   | "secret"
   | "debt"
+  | "faction"
   | "other";
 
 export type FieldType = "text" | "select";
@@ -21,7 +18,7 @@ export interface SchemaField {
   label: string;
   type: FieldType;
   options?: string[];
-  /** Show this value on map nodes / matrix */
+  /** Show this value on relationship nodes / matrix */
   highlight?: boolean;
   /** User-created field on this project */
   custom?: boolean;
@@ -47,9 +44,7 @@ export interface Character {
   color: string;
   mapX: number;
   mapY: number;
-  /** Genre-specific / custom values keyed by field key */
   fields: Record<string, string>;
-  /** Visual / research reference links */
   refs: string[];
 }
 
@@ -72,9 +67,7 @@ export interface Relation {
   label: string;
   fromPerspective: string;
   toPerspective: string;
-  /** Tension 1–5: how hard this bond presses the plot */
   tension: number;
-  /** Trust 1–5 from source toward target */
   trust: number;
 }
 
@@ -90,7 +83,6 @@ export interface Project {
   id: string;
   title: string;
   logline: string;
-  /** Short synopsis shown first in the project */
   synopsis: string;
   format: string;
   schemaId: string;
@@ -105,7 +97,6 @@ export interface Project {
 }
 
 export interface ReminderState {
-  /** ISO dates of shown reminders today */
   shownAt: string[];
   snoozedUntil?: string;
 }
@@ -117,20 +108,22 @@ export interface AppData {
 }
 
 export const ROLE_LABELS: Record<CharacterRole, string> = {
-  protagonist: "Протагонист",
-  antagonist: "Антагонист",
-  supporting: "Второй план",
+  pc: "Игрок (PC)",
+  npc: "NPC",
+  villain: "Антагонист",
+  patron: "Патрон / квестгивер",
   minor: "Эпизод",
 };
 
 export const RELATION_LABELS: Record<RelationKind, string> = {
   ally: "Союз",
-  rival: "Соперничество",
-  family: "Семья",
+  rival: "Вражда",
+  family: "Семья / род",
   romance: "Романтика",
   mentor: "Наставник",
   secret: "Тайна",
-  debt: "Долг",
+  debt: "Долг / рычаг",
+  faction: "Одна фракция",
   other: "Другое",
 };
 
@@ -142,7 +135,33 @@ export const RELATION_COLORS: Record<RelationKind, string> = {
   mentor: "#a16207",
   secret: "#6d28d9",
   debt: "#c2410c",
+  faction: "#0e7490",
   other: "#475569",
 };
 
-export const APP_DATA_VERSION = 3;
+export const APP_DATA_VERSION = 4;
+
+/** Migrate legacy screenplay roles → RPG roles */
+export function normalizeRole(role: string): CharacterRole {
+  switch (role) {
+    case "pc":
+    case "npc":
+    case "villain":
+    case "patron":
+    case "minor":
+      return role;
+    case "protagonist":
+      return "pc";
+    case "antagonist":
+      return "villain";
+    case "supporting":
+      return "npc";
+    default:
+      return "npc";
+  }
+}
+
+export function normalizeRelationKind(kind: string): RelationKind {
+  if (kind in RELATION_LABELS) return kind as RelationKind;
+  return "other";
+}

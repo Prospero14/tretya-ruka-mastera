@@ -207,7 +207,7 @@ export function LocationsPanel({ project }: { project: Project }) {
                 />
               </div>
               <RefSearch
-                seedQuery={`${draft.name || "location"} ${draft.mood || ""} film location reference`.trim()}
+                seedQuery={`${draft.name || "tavern"} ${draft.mood || ""} rpg location reference`.trim()}
                 refs={draft.refs || []}
                 onChange={(refs) => setDraft({ ...draft, refs })}
               />

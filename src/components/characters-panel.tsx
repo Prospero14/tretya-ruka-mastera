@@ -35,7 +35,7 @@ function blankCharacter(id: string, fieldKeys: string[]): Character {
   return {
     id,
     name: "",
-    role: "supporting",
+    role: "npc",
     archetype: "",
     goal: "",
     flaw: "",
@@ -58,12 +58,7 @@ export function CharactersPanel({ project }: { project: Project }) {
   const sorted = useMemo(
     () =>
       [...project.characters].sort((a, b) => {
-        const order: CharacterRole[] = [
-          "protagonist",
-          "antagonist",
-          "supporting",
-          "minor",
-        ];
+        const order: CharacterRole[] = ["pc", "villain", "patron", "npc", "minor"];
         return order.indexOf(a.role) - order.indexOf(b.role) || a.name.localeCompare(b.name, "ru");
       }),
     [project.characters],
@@ -251,7 +246,7 @@ export function CharactersPanel({ project }: { project: Project }) {
                 />
               </Field>
               <RefSearch
-                seedQuery={`${draft.name || "character"} ${draft.archetype || ""} screen character reference`.trim()}
+                seedQuery={`${draft.name || "npc"} ${draft.archetype || ""} fantasy character art reference`.trim()}
                 refs={draft.refs || []}
                 onChange={(refs) => setDraft({ ...draft, refs })}
               />

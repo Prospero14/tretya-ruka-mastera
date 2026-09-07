@@ -1,19 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  Background,
-  Controls,
-  MarkerType,
-  MiniMap,
-  ReactFlow,
-  useEdgesState,
-  useNodesState,
-  type Connection,
-  type Edge,
-  type Node,
-} from "@xyflow/react";
-import "@xyflow/react/dist/style.css";
+import { useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { Grid3X3, Link2, Pencil, Plus, Share2, Trash2 } from "lucide-react";
 import { useStore } from "@/components/store-provider";
 import { Button } from "@/components/ui/button";
@@ -39,11 +26,7 @@ import { getCharacterFields } from "@/lib/project-fields";
 import type { Project, Relation, RelationKind } from "@/lib/types";
 import { RELATION_COLORS, RELATION_LABELS, ROLE_LABELS } from "@/lib/types";
 
-function blankRelation(
-  id: string,
-  sourceId: string,
-  targetId: string,
-): Relation {
+function blankRelation(id: string, sourceId: string, targetId: string): Relation {
   return {
     id,
     sourceId,
@@ -57,7 +40,7 @@ function blankRelation(
   };
 }
 
-type ViewMode = "map" | "matrix";
+type ViewMode = "graph" | "matrix";
 
 export function RelationshipMap({ project }: { project: Project }) {
   const { upsertCharacter, upsertRelation, removeRelation, newId } = useStore();
@@ -66,106 +49,29 @@ export function RelationshipMap({ project }: { project: Project }) {
     .filter((field) => field.highlight)
     .map((field) => field.key);
 
-  const [view, setView] = useState<ViewMode>("map");
+  const [view, setView] = useState<ViewMode>("graph");
   const [draft, setDraft] = useState<Relation | null>(null);
-  const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [matrixPair, setMatrixPair] = useState<{ a: string; b: string } | null>(null);
+  const [linkFrom, setLinkFrom] = useState<string | null>(null);
+  const dragRef = useRef<{ id: string; ox: number; oy: number } | null>(null);
 
-  const initialNodes = useMemo<Node[]>(
-    () =>
-      project.characters.map((character) => {
-        const badges = highlightKeys
-          .map((key) => character.fields?.[key])
-          .filter(Boolean)
-          .slice(0, 2);
-        return {
-          id: character.id,
-          position: { x: character.mapX, y: character.mapY },
-          data: {
-            label: (
-              <div className="min-w-[120px] px-1 py-0.5 text-center">
-                <div className="text-[11px] font-semibold leading-tight">{character.name}</div>
-                <div className="text-[10px] opacity-70">{ROLE_LABELS[character.role]}</div>
-                {badges.length ? (
-                  <div className="mt-0.5 text-[9px] leading-tight opacity-80">
-                    {badges.join(" · ")}
-                  </div>
-                ) : null}
-              </div>
-            ),
-          },
-          style: {
-            borderRadius: 14,
-            border: `2px solid ${character.color}`,
-            background: "#fffdf8",
-            color: "#13294b",
-            fontSize: 12,
-            padding: 4,
-            boxShadow: "0 8px 20px rgba(19,41,75,0.08)",
-          },
-        };
-      }),
-    [highlightKeys, project.characters],
-  );
+  const width = 640;
+  const height = 420;
 
-  const initialEdges = useMemo<Edge[]>(
-    () =>
-      project.relations.map((relation) => {
-        const pressure = relationPressure(relation);
-        return {
-          id: relation.id,
-          source: relation.sourceId,
-          target: relation.targetId,
-          label: `${relation.label || RELATION_LABELS[relation.kind]} · ${pressure}/10`,
-          animated: relation.kind === "secret" || pressure >= 8,
-          style: {
-            stroke: RELATION_COLORS[relation.kind],
-            strokeWidth: 1.5 + pressure / 4,
-          },
-          labelStyle: { fill: "#13294b", fontSize: 10, fontWeight: 600 },
-          markerEnd: {
-            type: MarkerType.ArrowClosed,
-            color: RELATION_COLORS[relation.kind],
-          },
-        };
-      }),
-    [project.relations],
-  );
-
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-
-  useEffect(() => {
-    setNodes(initialNodes);
-  }, [initialNodes, setNodes]);
-
-  useEffect(() => {
-    setEdges(initialEdges);
-  }, [initialEdges, setEdges]);
-
-  const onNodeDragStop = useCallback(
-    (_event: unknown, node: Node) => {
-      const character = project.characters.find((item) => item.id === node.id);
-      if (!character) return;
-      upsertCharacter(project.id, {
+  const nodes = useMemo(() => {
+    return project.characters.map((character, index) => {
+      const angle = (index / Math.max(project.characters.length, 1)) * Math.PI * 2 - Math.PI / 2;
+      const fallbackX = width / 2 + Math.cos(angle) * 160;
+      const fallbackY = height / 2 + Math.sin(angle) * 120;
+      return {
         ...character,
-        mapX: node.position.x,
-        mapY: node.position.y,
-      });
-    },
-    [project.characters, project.id, upsertCharacter],
-  );
+        x: Number.isFinite(character.mapX) ? character.mapX : fallbackX,
+        y: Number.isFinite(character.mapY) ? character.mapY : fallbackY,
+      };
+    });
+  }, [project.characters]);
 
-  const onConnect = useCallback(
-    (connection: Connection) => {
-      if (!connection.source || !connection.target) return;
-      if (connection.source === connection.target) return;
-      setDraft(blankRelation(newId("rel"), connection.source, connection.target));
-    },
-    [newId],
-  );
-
-  const selectedRelation = project.relations.find((item) => item.id === selectedEdgeId);
+  const byId = useMemo(() => new Map(nodes.map((n) => [n.id, n])), [nodes]);
 
   const matrixInsight = useMemo(() => {
     if (!matrixPair) return null;
@@ -175,23 +81,58 @@ export function RelationshipMap({ project }: { project: Project }) {
     return { a, b, ...pairInsight(project, a, b, highlightKeys) };
   }, [highlightKeys, matrixPair, project]);
 
-  const selectedInsight = useMemo(() => {
-    if (!selectedRelation) return null;
-    const a = project.characters.find((item) => item.id === selectedRelation.sourceId);
-    const b = project.characters.find((item) => item.id === selectedRelation.targetId);
-    if (!a || !b) return null;
-    return pairInsight(project, a, b, highlightKeys);
-  }, [highlightKeys, project, selectedRelation]);
+  function onPointerDown(id: string, event: ReactPointerEvent<SVGGElement>) {
+    event.currentTarget.setPointerCapture(event.pointerId);
+    const node = byId.get(id);
+    if (!node) return;
+    const svg = event.currentTarget.ownerSVGElement;
+    if (!svg) return;
+    const point = clientToSvg(svg, event.clientX, event.clientY);
+    dragRef.current = { id, ox: point.x - node.x, oy: point.y - node.y };
+  }
+
+  function onPointerMove(event: ReactPointerEvent<SVGGElement>) {
+    const drag = dragRef.current;
+    if (!drag) return;
+    const svg = event.currentTarget.ownerSVGElement;
+    if (!svg) return;
+    const point = clientToSvg(svg, event.clientX, event.clientY);
+    const character = project.characters.find((item) => item.id === drag.id);
+    if (!character) return;
+    upsertCharacter(project.id, {
+      ...character,
+      mapX: clamp(point.x - drag.ox, 40, width - 40),
+      mapY: clamp(point.y - drag.oy, 30, height - 30),
+    });
+  }
+
+  function onPointerUp() {
+    dragRef.current = null;
+  }
+
+  function onNodeActivate(id: string) {
+    if (!linkFrom) {
+      setLinkFrom(id);
+      return;
+    }
+    if (linkFrom === id) {
+      setLinkFrom(null);
+      return;
+    }
+    setDraft(blankRelation(newId("rel"), linkFrom, id));
+    setLinkFrom(null);
+  }
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="font-[family-name:var(--font-display)] text-2xl text-[var(--ink)]">
-            Карта связей
+            Связи
           </h2>
           <p className="text-sm text-[var(--ink-muted)]">
-            Граф + матрица давления: тип связи, доверие, напряжение и совпадения полей шаблона.
+            Не географическая карта — схема отношений PC/NPC: долги, тайны, фракции, крючки.
+            Тап по двум узлам подряд создаёт связь. Узлы можно тащить.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -199,12 +140,12 @@ export function RelationshipMap({ project }: { project: Project }) {
             <button
               type="button"
               className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs ${
-                view === "map" ? "bg-[var(--ink)] text-white" : "text-[var(--ink-muted)]"
+                view === "graph" ? "bg-[var(--ink)] text-white" : "text-[var(--ink-muted)]"
               }`}
-              onClick={() => setView("map")}
+              onClick={() => setView("graph")}
             >
               <Share2 className="size-3.5" />
-              Граф
+              Схема
             </button>
             <button
               type="button"
@@ -236,28 +177,109 @@ export function RelationshipMap({ project }: { project: Project }) {
         <div className="rounded-2xl border border-dashed border-[var(--line)] bg-white/50 px-5 py-10 text-center">
           <p className="font-medium text-[var(--ink)]">Некого связывать</p>
           <p className="mt-1 text-sm text-[var(--ink-muted)]">
-            Сначала добавьте хотя бы двух персонажей.
+            Добавьте PC и NPC — схема отношений оживёт.
           </p>
         </div>
-      ) : view === "map" ? (
+      ) : view === "graph" ? (
         <div className="overflow-hidden rounded-2xl border border-[var(--line)] bg-[#f4f7fb]">
-          <div className="h-[420px] w-full sm:h-[520px]">
-            <ReactFlow
-              nodes={nodes}
-              edges={edges}
-              onNodesChange={onNodesChange}
-              onEdgesChange={onEdgesChange}
-              onConnect={onConnect}
-              onNodeDragStop={onNodeDragStop}
-              onEdgeClick={(_event, edge) => setSelectedEdgeId(edge.id)}
-              fitView
-              proOptions={{ hideAttribution: true }}
-            >
-              <Background gap={18} size={1} color="#cbd5e1" />
-              <MiniMap pannable zoomable />
-              <Controls showInteractive={false} />
-            </ReactFlow>
-          </div>
+          {linkFrom ? (
+            <p className="border-b border-[var(--line)] bg-white/80 px-3 py-2 text-xs text-[var(--ink-muted)]">
+              Выберите второго персонажа для связи (или тапните того же, чтобы отменить).
+            </p>
+          ) : null}
+          <svg
+            viewBox={`0 0 ${width} ${height}`}
+            className="h-[360px] w-full touch-none sm:h-[440px]"
+            role="img"
+            aria-label="Схема связей персонажей"
+          >
+            {project.relations.map((relation) => {
+              const source = byId.get(relation.sourceId);
+              const target = byId.get(relation.targetId);
+              if (!source || !target) return null;
+              const pressure = relationPressure(relation);
+              const mx = (source.x + target.x) / 2;
+              const my = (source.y + target.y) / 2;
+              return (
+                <g
+                  key={relation.id}
+                  className="cursor-pointer"
+                  onClick={() => setDraft(relation)}
+                >
+                  <line
+                    x1={source.x}
+                    y1={source.y}
+                    x2={target.x}
+                    y2={target.y}
+                    stroke={RELATION_COLORS[relation.kind]}
+                    strokeWidth={1.5 + pressure / 4}
+                    opacity={0.85}
+                  />
+                  <rect
+                    x={mx - 46}
+                    y={my - 10}
+                    width={92}
+                    height={20}
+                    rx={8}
+                    fill="white"
+                    opacity={0.92}
+                  />
+                  <text
+                    x={mx}
+                    y={my + 4}
+                    textAnchor="middle"
+                    className="fill-[var(--ink)]"
+                    fontSize="9"
+                    fontWeight={600}
+                  >
+                    {(relation.label || RELATION_LABELS[relation.kind]).slice(0, 16)}
+                  </text>
+                </g>
+              );
+            })}
+            {nodes.map((node) => {
+              const badges = highlightKeys
+                .map((key) => node.fields?.[key])
+                .filter(Boolean)
+                .slice(0, 1);
+              const selected = linkFrom === node.id;
+              return (
+                <g
+                  key={node.id}
+                  transform={`translate(${node.x}, ${node.y})`}
+                  onPointerDown={(event) => onPointerDown(node.id, event)}
+                  onPointerMove={onPointerMove}
+                  onPointerUp={onPointerUp}
+                  onClick={() => onNodeActivate(node.id)}
+                  className="cursor-grab active:cursor-grabbing"
+                >
+                  <circle
+                    r={28}
+                    fill="#fffdf8"
+                    stroke={selected ? "#c23b22" : node.color}
+                    strokeWidth={selected ? 3 : 2}
+                  />
+                  <text
+                    textAnchor="middle"
+                    y={-2}
+                    fontSize="10"
+                    fontWeight={700}
+                    className="fill-[var(--ink)]"
+                  >
+                    {node.name.slice(0, 10)}
+                  </text>
+                  <text
+                    textAnchor="middle"
+                    y={11}
+                    fontSize="8"
+                    className="fill-[var(--ink-muted)]"
+                  >
+                    {(badges[0] || ROLE_LABELS[node.role]).slice(0, 12)}
+                  </text>
+                </g>
+              );
+            })}
+          </svg>
         </div>
       ) : (
         <RelationMatrix
@@ -266,14 +288,6 @@ export function RelationshipMap({ project }: { project: Project }) {
           onSelectPair={(a, b) => setMatrixPair({ a, b })}
         />
       )}
-
-      {selectedInsight && selectedRelation ? (
-        <InsightCard
-          title="Выбрана связь на графе"
-          body={selectedInsight.summary}
-          onEdit={() => setDraft(selectedRelation)}
-        />
-      ) : null}
 
       {matrixInsight ? (
         <InsightCard
@@ -421,10 +435,11 @@ export function RelationshipMap({ project }: { project: Project }) {
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label>Подпись на карте</Label>
+                <Label>Подпись</Label>
                 <Input
                   value={draft.label}
                   onChange={(event) => setDraft({ ...draft, label: event.target.value })}
+                  placeholder="Например: общий квест / кровная вражда"
                 />
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
@@ -492,7 +507,6 @@ export function RelationshipMap({ project }: { project: Project }) {
                 if (!draft || draft.sourceId === draft.targetId) return;
                 upsertRelation(project.id, draft);
                 setDraft(null);
-                setSelectedEdgeId(draft.id);
               }}
             >
               Сохранить
@@ -502,6 +516,20 @@ export function RelationshipMap({ project }: { project: Project }) {
       </Dialog>
     </div>
   );
+}
+
+function clientToSvg(svg: SVGSVGElement, clientX: number, clientY: number) {
+  const point = svg.createSVGPoint();
+  point.x = clientX;
+  point.y = clientY;
+  const matrix = svg.getScreenCTM();
+  if (!matrix) return { x: 0, y: 0 };
+  const local = point.matrixTransform(matrix.inverse());
+  return { x: local.x, y: local.y };
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
 }
 
 function clampScore(value: number) {
@@ -564,7 +592,10 @@ function RelationMatrix({
               {chars.map((col) => {
                 if (row.id === col.id) {
                   return (
-                    <td key={col.id} className="bg-[var(--paper)]/60 p-2 text-center text-[var(--ink-muted)]">
+                    <td
+                      key={col.id}
+                      className="bg-[var(--paper)]/60 p-2 text-center text-[var(--ink-muted)]"
+                    >
                       —
                     </td>
                   );

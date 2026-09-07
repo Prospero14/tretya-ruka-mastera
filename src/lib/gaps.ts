@@ -21,29 +21,29 @@ export function findProjectGaps(project: Project): GapItem[] {
   };
 
   if (!project.synopsis?.trim()) {
-    push("Нет краткого синопсиса", "high");
+    push("Нет краткого синопсиса кампании", "high");
   }
   if (!project.logline?.trim()) {
-    push("Нет логлайна", "medium");
+    push("Нет логлайна / хука для стола", "medium");
   }
   if (project.characters.length === 0) {
-    push("Нет персонажей", "high");
+    push("Нет PC/NPC", "high");
   } else {
     const thin = project.characters.filter(
       (character) => !character.goal.trim() || !character.exposition.trim(),
     );
     if (thin.length) {
-      push(`У ${thin.length} персонаж(ей) не заполнены цель/экспозиция`, "medium");
+      push(`У ${thin.length} персонаж(ей) не заполнены цель/заметка для мастера`, "medium");
     }
   }
   if (project.locations.length === 0) {
-    push("Нет локаций", "medium");
+    push("Нет локаций для сессии", "medium");
   }
   if (project.characters.length >= 2 && project.relations.length === 0) {
-    push("Карта связей пустая", "high");
+    push("Схема связей пустая", "high");
   }
   if (project.exposition.length === 0) {
-    push("Нет заметок экспозиции", "medium");
+    push("Нет заметок по миру / экспозиции", "medium");
   }
 
   return gaps;
